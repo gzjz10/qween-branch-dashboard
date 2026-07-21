@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>لوحة متابعة تجهيز الفرع — قوين</title>
+<style>
+:root{
+  --accent:#0f766e; --accent-dark:#115e59; --accent-soft:#ccfbf1;
+  --done:#16a34a; --done-bg:#dcfce7;
+  --prog:#d97706; --prog-bg:#fef3c7;
+  --follow:#ea580c; --follow-bg:#ffedd5;
+  --none:#dc2626; --none-bg:#fee2e2;
+  --over:#7c3aed; --over-bg:#ede9fe;
+  --muted:#64748b; --muted-bg:#f1f5f9;
+  --ink:#0f172a; --ink-2:#334155;
+  --line:#e2e8f0; --bg:#f4f6f8; --card:#ffffff;
+  --radius:12px;
+  --shadow:0 1px 3px rgba(15,23,42,.08),0 1px 2px rgba(15,23,42,.05);
+  --shadow-lg:0 4px 16px rgba(15,23,42,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:"Segoe UI",Tahoma,"Noto Kufi Arabic","Geeza Pro",sans-serif;
+  background:var(--bg);color:var(--ink);font-size:15px;line-height:1.55;
+  overflow-x:hidden;
+}
+button{font-family:inherit;cursor:pointer}
+input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+::-webkit-scrollbar{height:8px;width:8px}
+::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:4px}
+
+/* ---------- Header ---------- */
+.app-header{
+  position:sticky;top:0;z-index:50;background:var(--accent);color:#fff;
+  box-shadow:var(--shadow-lg);
+}
+.app-header .inner{
+  max-width:1280px;margin:0 auto;padding:10px 16px;
+  display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;
+}
+.app-title{font-size:17px;font-weight:700;letter-spacing:.2px}
+.app-title small{display:block;font-size:11.5px;font-weight:400;opacity:.85}
+.toolbar{display:flex;flex-wrap:wrap;gap:8px;margin-inline-start:auto;align-items:center}
+.tb-btn{
+  min-height:38px;padding:6px 14px;border:1px solid rgba(255,255,255,.35);
+  background:rgba(255,255,255,.12);color:#fff;border-radius:8px;font-size:13px;
+  font-weight:600;transition:background .15s;
+}
+.tb-btn:hover{background:rgba(255,255,255,.24)}
+.tb-btn.danger{border-color:rgba(255,205,205,.6);background:rgba(190,30,30,.35)}
+.tb-btn.danger:hover{background:rgba(190,30,30,.55)}
+.saved-at{font-size:11.5px;opacity:.85;white-space:nowrap}
+
+/* ---------- Tabs ---------- */
+.tabbar-wrap{
+  position:sticky;top:var(--hdr-h,58px);z-index:40;background:var(--card);
+  border-bottom:1px solid var(--line);box-shadow:var(--shadow);
+}
+.tabbar{
+  max-width:1280px;margin:0 auto;display:flex;gap:4px;overflow-x:auto;
+  padding:8px 12px;scrollbar-width:thin;-webkit-overflow-scrolling:touch;
+}
+.tab{
+  flex:0 0 auto;min-height:44px;padding:8px 14px;border:1px solid var(--line);
+  background:var(--card);color:var(--ink-2);border-radius:999px;font-size:13.5px;
+  font-weight:600;white-space:nowrap;transition:all .15s;
+}
+.tab:hover{border-color:var(--accent);color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.tab .cnt{font-size:11px;opacity:.75;margin-inline-start:4px}
+
+/* ---------- Filters ---------- */
+.filters{
+  max-width:1280px;margin:0 auto;padding:12px 16px 0;
+  display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+}
+.search-box{position:relative;flex:1 1 240px;max-width:420px}
+.search-box input{
+  width:100%;min-height:44px;padding:8px 12px;padding-inline-end:38px;border:1px solid var(--line);
+  border-radius:10px;background:var(--card);font-size:14px;
+}
+.search-box input:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+.search-box .ic{position:absolute;inset-inline-start:auto;inset-inline-end:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:15px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{
+  min-height:36px;padding:5px 13px;border-radius:999px;border:1px solid var(--line);
+  background:var(--card);font-size:12.5px;font-weight:600;color:var(--ink-2);transition:all .12s;
+}
+.chip:hover{border-color:var(--accent)}
+.chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip.c-over.active{background:var(--over);border-color:var(--over)}
+
+/* ---------- Layout ---------- */
+main{max-width:1280px;margin:0 auto;padding:16px 16px 64px}
+.section-title{font-size:15px;font-weight:700;color:var(--ink-2);margin:22px 0 10px}
+.empty-note{
+  background:var(--card);border:1px dashed var(--line);border-radius:var(--radius);
+  padding:28px;text-align:center;color:var(--muted);font-size:14px;
+}
+
+/* ---------- KPI cards ---------- */
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px}
+.kpi{
+  background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:14px 16px;border-top:3px solid var(--accent);
+}
+.kpi .lbl{font-size:12px;color:var(--muted);font-weight:600}
+.kpi .val{font-size:22px;font-weight:800;margin-top:2px;direction:ltr;text-align:right}
+.kpi .sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.kpi.k-def{border-top-color:var(--none)}   .kpi.k-def .val{color:var(--none)}
+.kpi.k-reg{border-top-color:var(--done)}   .kpi.k-reg .val{color:var(--done)}
+.kpi.k-over{border-top-color:var(--over)}  .kpi.k-over .val{color:var(--over)}
+.kpi.k-money{border-top-color:var(--prog)}
+
+/* ---------- Progress bars ---------- */
+.bar{position:relative;height:8px;background:var(--muted-bg);border-radius:999px;overflow:hidden;min-width:70px}
+.bar .fill{position:absolute;top:0;inset-inline-start:0;height:100%;background:var(--accent);border-radius:999px;transition:width .25s}
+.bar .fill.f-done{background:var(--done)}
+.bar .fill.f-prog{background:var(--prog)}
+.bar .fill.f-follow{background:var(--follow)}
+.bar .fill.f-none{background:var(--none)}
+.bar .overflow{position:absolute;top:0;inset-inline-end:0;height:100%;background:repeating-linear-gradient(45deg,var(--over),var(--over) 4px,#a78bfa 4px,#a78bfa 8px);border-radius:999px}
+.bar-line{display:flex;align-items:center;gap:8px}
+.bar-line .pct-txt{font-size:12px;font-weight:700;color:var(--ink-2);min-width:38px;direction:ltr;text-align:left}
+
+/* ---------- Chips / badges ---------- */
+.st{display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;white-space:nowrap}
+.st.s-done{background:var(--done-bg);color:#166534}
+.st.s-prog{background:var(--prog-bg);color:#92400e}
+.st.s-follow{background:var(--follow-bg);color:#9a3412}
+.st.s-none{background:var(--none-bg);color:#991b1b}
+.st.s-blank{background:var(--muted-bg);color:var(--muted)}
+.badge-over{
+  display:inline-block;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;
+  background:var(--over-bg);color:#5b21b6;border:1px solid #ddd6fe;white-space:nowrap;
+}
+
+/* ---------- Overview: donut + categories ---------- */
+.ov-grid{display:grid;grid-template-columns:1fr;gap:16px}
+.panel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px}
+.panel h3{font-size:14px;font-weight:700;color:var(--ink-2);margin-bottom:12px}
+.donut-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:20px;justify-content:center}
+.donut-legend{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.donut-legend .li{display:flex;align-items:center;gap:8px}
+.donut-legend .sw{width:12px;height:12px;border-radius:3px;flex:0 0 auto}
+.donut-center{font-size:20px;font-weight:800;fill:var(--ink)}
+.donut-center-sub{font-size:9px;fill:var(--muted)}
+
+/* overview table (desktop) */
+.ov-table-wrap{overflow-x:auto;border-radius:var(--radius)}
+table.ov{width:100%;border-collapse:collapse;font-size:13.5px;min-width:760px}
+table.ov th{
+  background:var(--muted-bg);color:var(--ink-2);font-size:12px;font-weight:700;
+  padding:10px 10px;text-align:right;white-space:nowrap;border-bottom:2px solid var(--line);
+}
+table.ov td{padding:10px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.ov tr:hover td{background:#f8fafc}
+table.ov tr{cursor:pointer}
+table.ov .cat-name{font-weight:700;color:var(--accent-dark)}
+.num{direction:ltr;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* overview cards (mobile) */
+.ov-cards{display:none;flex-direction:column;gap:10px}
+.ov-card{
+  background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);
+  padding:14px;cursor:pointer;border:1px solid transparent;min-height:44px;
+}
+.ov-card:active{border-color:var(--accent)}
+.ov-card .top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ov-card .nm{font-weight:700;color:var(--accent-dark);font-size:14.5px;margin-inline-end:auto}
+.ov-card .nums{display:flex;gap:14px;margin:8px 0 8px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.ov-card .nums b{color:var(--ink);font-size:13px;direction:ltr;display:inline-block}
+
+/* ---------- Category view ---------- */
+.cat-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+.back-btn{
+  min-height:44px;min-width:44px;padding:8px 16px;border-radius:10px;border:1px solid var(--line);
+  background:var(--card);font-weight:700;font-size:13.5px;color:var(--accent-dark);box-shadow:var(--shadow);
+}
+.back-btn:hover{border-color:var(--accent)}
+.cat-title{font-size:19px;font-weight:800;color:var(--ink)}
+.cat-info{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;
+  background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px;margin-bottom:16px;
+}
+.field label{display:block;font-size:11.5px;font-weight:700;color:var(--muted);margin-bottom:4px}
+.field select,.field input{
+  width:100%;min-height:44px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font-size:14px;
+}
+.field select:focus,.field input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.cat-actions{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}
+.act-btn{
+  min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid var(--accent);
+  background:var(--accent-soft);color:var(--accent-dark);font-weight:700;font-size:13px;
+}
+.act-btn:hover{background:var(--accent);color:#fff}
+
+/* category table (desktop) */
+.cat-table-wrap{overflow-x:auto;background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow)}
+table.ct{border-collapse:separate;border-spacing:0;font-size:13px;min-width:100%}
+table.ct th{
+  background:var(--muted-bg);color:var(--ink-2);font-size:11.5px;font-weight:700;padding:9px 8px;
+  text-align:center;white-space:nowrap;border-bottom:2px solid var(--line);position:sticky;top:0;
+}
+table.ct td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle;background:var(--card)}
+table.ct tr:last-child td{border-bottom:none}
+table.ct th.sticky,table.ct td.sticky{
+  position:sticky;inset-inline-start:0;z-index:2;text-align:right;
+  box-shadow:1px 0 0 var(--line) inset;
+}
+table.ct th.sticky{z-index:3;background:var(--muted-bg)}
+table.ct td.sticky{background:var(--card);font-weight:600;min-width:150px;max-width:220px}
+table.ct tfoot td{background:var(--muted-bg);font-weight:800;border-top:2px solid var(--line)}
+table.ct tfoot td.sticky{background:var(--muted-bg)}
+.cell-in{
+  width:74px;min-height:38px;padding:5px 6px;border:1px solid var(--line);border-radius:7px;
+  text-align:center;direction:ltr;background:#fff;font-size:13px;font-variant-numeric:tabular-nums;
+}
+.cell-in:focus{outline:2px solid var(--accent);outline-offset:-1px;border-color:var(--accent)}
+.cell-in.txt{width:140px;text-align:right;direction:rtl}
+.cell-in.code{width:60px}
+input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+input[type=number]{-moz-appearance:textfield;appearance:textfield}
+
+/* category cards (mobile) */
+.cat-cards{display:none;flex-direction:column;gap:10px}
+.sub-card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+.sub-card summary{
+  list-style:none;display:block;padding:12px 14px;cursor:pointer;min-height:44px;
+}
+.sub-card summary::-webkit-details-marker{display:none}
+.sub-card .sum-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sub-card .sum-nm{font-weight:700;font-size:14px;margin-inline-end:auto}
+.sub-card .sum-nums{font-size:11.5px;color:var(--muted);margin:6px 0}
+.sub-card .sum-nums b{color:var(--ink);direction:ltr;display:inline-block}
+.sub-card .body{padding:4px 14px 14px;border-top:1px solid var(--line)}
+.sup-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.sup-cell label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sup-cell input{width:100%;min-height:44px;padding:8px;border:1px solid var(--line);border-radius:8px;text-align:center;direction:ltr;font-size:15px}
+.sup-cell input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.sub-meta{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.chev{transition:transform .2s;color:var(--muted);font-size:12px}
+details[open] .chev{transform:rotate(180deg)}
+
+/* ---------- Footer ---------- */
+.app-footer{max-width:1280px;margin:0 auto;padding:0 16px 32px;color:var(--muted);font-size:12px;text-align:center}
+
+/* ---------- Toast ---------- */
+#toast{
+  position:fixed;bottom:20px;inset-inline-start:50%;transform:translateX(50%);z-index:100;
+  background:var(--ink);color:#fff;padding:10px 20px;border-radius:10px;font-size:13.5px;
+  box-shadow:var(--shadow-lg);opacity:0;pointer-events:none;transition:opacity .25s;
+}
+#toast.show{opacity:1}
+
+/* ---------- Responsive ---------- */
+@media (max-width:768px){
+  .app-title{font-size:15px}
+  .ov-table-wrap{display:none}
+  .ov-cards{display:flex}
+  .cat-table-wrap{display:none}
+  .cat-cards{display:flex}
+  .kpis{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .kpi .val{font-size:19px}
+  .tb-btn{min-height:44px}
+  .chip{min-height:44px;padding:8px 14px}
+  .sup-cell label,.sub-card .sum-nums,.st,.badge-over,.chip,.kpi .lbl,.kpi .sub,.ov-card .nums,.ov-card .nums b,.bar-line .pct-txt{font-size:14px}
+  .bar-line .pct-txt{min-width:44px}
+  input,select,textarea{font-size:16px}
+}
+@media (min-width:769px){
+  .ov-grid{grid-template-columns:2fr 1fr;align-items:start}
+  .ov-grid .panel.p-cats{grid-column:1}
+  .ov-grid .panel.p-donut{grid-column:2}
+}
+@media (max-width:420px){
+  .sup-grid{grid-template-columns:1fr 1fr}
+  main{padding:12px 10px 56px}
+  .filters{padding:10px 10px 0}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header" id="appHeader">
+  <div class="inner">
+    <div class="app-title">لوحة متابعة تجهيز الفرع — قوين
+      <small id="savedAt" class="saved-at">لم يتم الحفظ بعد</small>
+    </div>
+    <div class="toolbar">
+      <button class="tb-btn" id="btnExportJson">تصدير JSON</button>
+      <button class="tb-btn" id="btnImportJson">استيراد JSON</button>
+      <button class="tb-btn" id="btnExportCsv">تصدير CSV</button>
+      <button class="tb-btn danger" id="btnReset">إعادة التعيين</button>
+      <input type="file" id="importFile" accept=".json,application/json" hidden>
+    </div>
+  </div>
+</header>
+
+<nav class="tabbar-wrap"><div class="tabbar" id="tabbar"></div></nav>
+
+<div class="filters">
+  <div class="search-box">
+    <input type="search" id="searchIn" placeholder="بحث عن صنف فرعي…" autocomplete="off">
+    <span class="ic">&#128269;</span>
+  </div>
+  <div class="chips" id="chips"></div>
+</div>
+
+<main id="main"></main>
+
+<footer class="app-footer">جميع التعديلات تُحفظ تلقائيًا في هذا المتصفح — لوحة متابعة تجهيز الفرع (قوين)</footer>
+<div id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   DATA — embedded verbatim from data.json (18 categories)
+   ============================================================ */
+const DATA = [{"name": "المنظفات", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["مصنع الجودة", "اهل السراء", "فضائيات", "الهدف الساطع", "سلسلة التطور", "بيست كلين", "النغموش", "موبي", "رسيل", "التويجري", "الصخرة", "السهم", "السهم الأبيض", "سعود السيف", "اسم الشركة 15"], "rows": [{"code": "", "name": "سائل يدين", "target": 200, "vals": [0, 0, 40, 70, 48, 30, 0, 30, 0, 20, 30, 0, 0, 0, 0], "note": "مكتمل"}, {"code": "", "name": "منظف ارضيات", "target": 200, "vals": [20, 9, 25, 12, 0, 50, 0, 0, 0, 0, 40, 68, 30, 0, 0], "note": "مكتمل"}, {"code": "", "name": "سائل صحون", "target": 500, "vals": [15, 0, 0, 20, 20, 15, 0, 15, 40, 5, 20, 16, 10, 0, 0], "note": "يحتاج متابعة"}, {"code": "", "name": "مسحوق غسيل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 10, 10, 10, 0, 15, 0, 50, 0], "note": ""}, {"code": "", "name": "منعم ملابس", "target": 0, "vals": [0, 0, 12, 0, 10, 0, 0, 12, 26, 0, 11, 0, 20, 0, 0], "note": ""}, {"code": "", "name": "معطر شديد التركيز", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 60, 0, 0, 0, 0, 30, 0], "note": ""}, {"code": "", "name": "سائل غسيل  ملابس", "target": 0, "vals": [10, 0, 20, 10, 10, 5, 0, 6, 10, 0, 5, 12, 0, 0, 0], "note": ""}, {"code": "", "name": "معطر عام", "target": 0, "vals": [0, 0, 0, 24, 20, 0, 0, 0, 15, 0, 0, 0, 25, 0, 0], "note": ""}, {"code": "", "name": "جل ارضيات", "target": 0, "vals": [10, 0, 0, 30, 0, 0, 0, 0, 5, 19, 20, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "كلور 3.78", "target": 0, "vals": [10, 50, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "شامبو عباية", "target": 0, "vals": [5, 0, 25, 0, 0, 8, 0, 0, 10, 0, 10, 10, 0, 0, 0], "note": ""}, {"code": "", "name": "فلاش", "target": 0, "vals": [10, 30, 0, 0, 0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "اسفنجيات + سلك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 50, 0], "note": ""}, {"code": "", "name": "مطهر عام", "target": 0, "vals": [0, 0, 0, 15, 15, 10, 0, 0, 5, 0, 5, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "ملمع زجاج 2حبه 650 مل", "target": 0, "vals": [5, 10, 0, 0, 0, 5, 0, 5, 10, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "نفثالين", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 10, 0, 0, 0], "note": ""}, {"code": "", "name": "كلور 3.78 ملون", "target": 0, "vals": [0, 0, 25, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "معطر مفارش", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 25, 0, 0, 0], "note": ""}, {"code": "", "name": "منظف مرحاض", "target": 0, "vals": [5, 0, 0, 10, 0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0], "note": ""}, {"code": "", "name": "معطر جو", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 9, 0, 6, 0], "note": ""}, {"code": "", "name": "مزيل شامل", "target": 0, "vals": [0, 0, 0, 10, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "ملمع زجاج 4 لتر", "target": 50, "vals": [10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": "لم يبدأ"}, {"code": "", "name": "شامبو سجاد", "target": 0, "vals": [0, 5, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "ملمع اثاث+ استيل+افران", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "مزيل الدهون", "target": 0, "vals": [0, 0, 0, 6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "مبيد حشري", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "مسلك بالوعات", "target": 0, "vals": [0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "نشا الكوي", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "فضفاض", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "معقم بخاخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "قفازات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "", "name": "كمامات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "الإسفنجيات", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "019", "name": "إسفنجيات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "المناديل المبللة", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "003", "name": "فاين", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "001", "name": "اكواب ورقية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "ماكسي رول", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "مناديل مبلله", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "رول مطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "مناديل جيب", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "ورق قصدير", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "صحون ورقية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "ورق الزبدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "018", "name": "ورق سفرة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "مناديل سفرة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "ورق ساندوتش", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "رول حمام", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "015", "name": "أكياس ورقية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "019", "name": "حبال", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "017", "name": "كاب كيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "020", "name": "صحون قصدير", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016", "name": "استاند مناديل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "014", "name": "صحون تقديم ورقية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "021", "name": "صناديق فلين", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "055", "name": "حفائظ أطفال", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "المكياج", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "ايلاف", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "001", "name": "مزيل مناكير", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "رموش", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "فراء رموش", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "اظافر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "غراء اظافر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "قطن", "target": 30, "vals": [0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": "تحت التنفيذ"}, {"code": "007", "name": "مسكرة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "روج", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "ظل عيون", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "احمر خدود", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "كريم أساس", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "خافي عيوب", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "بودرة وجه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "014", "name": "مناكير", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "015", "name": "كحل سائل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016", "name": "مرايات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "017", "name": "مبرد اظافر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "018", "name": "اضاءة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "019", "name": "قلم حواجب", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "020", "name": "كحل قلم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "021", "name": "اسفنج مكياج", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "022", "name": "فرش مكياج", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "023", "name": "مناديل مزيل مكياج", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "024", "name": "ملقاط شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "025", "name": "حنا", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "العناية بالبشرة", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "001", "name": "غسول وجه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "شامبو شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "لوشن جسم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "بلسم شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "مخمرية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "فرشة اسنان", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "ليف جسم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "معجون اسنان", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "صابون قوالب", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "بودرة جسم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "جل استحمام", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "كريم شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "جل شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "014", "name": "كريم مرطب", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "015", "name": "قناع وجه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016", "name": "صنفرة وجه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "017", "name": "زيت شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "018", "name": "بديل الزيت", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "019", "name": "مبرد ارجل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "020", "name": "مقص اظافر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "021", "name": "مستلزمات طبيه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "022", "name": "شفرات حلاقه رجالي", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "023", "name": "شفرات حلاقه نسائي", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "024", "name": "مزيل عرق", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "025", "name": "مزيل شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "026", "name": "ماء الورد", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "027", "name": "مزيل مكياج", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "028", "name": "جلي مرطب", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "029", "name": "حمام زيت", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "030", "name": "كريمات مرطبه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "031", "name": "حلاوة طبيعيه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "032", "name": "غطا راس", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "033", "name": "مقص", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "034", "name": "لصق ظهر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "035", "name": "فوط نسائي", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "036", "name": "غسول الفم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "037", "name": "صبغات الشعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "الألعاب", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "001", "name": "حصالات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "نضارات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "مكعبات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "مجسمات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "مسدس صابون", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "مسدس ماء", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "كرت سيارة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "كرت عرائس", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "كرت مطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "كرت دكتور", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "كرت سباكه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "كرت شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "كرت مكياج", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "014", "name": "دباديب صغيرة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "015", "name": "دباديب كبيره", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016", "name": "كرة قدم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "017", "name": "كرة سلة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "018", "name": "العاب متنوعه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "019", "name": "العاب تعليميه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "020", "name": "مسدس كرت", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "021", "name": "فوانيس رمضان", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "الورود", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "001", "name": "مراكب تعليق", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "تعاليق خشبية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "فازات فخار", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "كتب ديكور", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "منظر ديكور", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "ميداليات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "شموع مضيئة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "سطل زراعة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "لمبات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "ورد مجفف", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "ورد", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "مباخر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "مجسمات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "014", "name": "شمعدان", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "015", "name": "شموع", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016", "name": "مركب تحف", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "017", "name": "احجار زينة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "018", "name": "أكياس هدايا", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "019", "name": "علب مهيتو", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "020", "name": "سلل خوص", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "021", "name": "علب تعليق", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "022", "name": "فازات زجاج", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "023", "name": "توزيعات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "024", "name": "ارضيات باركيه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "025", "name": "تغليف هدايا", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "026", "name": "لوحات ديكور", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "السبالة", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["قوين", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "001", "name": "علاق ملابس — ملحقات المنزل", "target": 20, "vals": [100, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": "مكتمل"}, {"code": "002", "name": "علاق لاصق — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "مشابك غسيل — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "مساحة بلاط — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "أكياس تخزين ملابس — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "أكياس غسيل — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "شنطة رحلات — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "مساحة زجاج — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "مكانس — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "مستلزمات المنزل — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "ورق جدران — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "حاجز باب — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "014", "name": "فوط تنظيف — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "015", "name": "شطاف ماء — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016", "name": "فحم — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "017", "name": "طفايات — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "018", "name": "طاولات — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "019", "name": "صناديق — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "020", "name": "استندات — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "021", "name": "رفوف احذية — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "022", "name": "رول مطبخ — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "023", "name": "مضرب ناموس — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "024", "name": "مراوح — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "025", "name": "دعاسات — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "026", "name": "سطول معدني — ملحقات المنزل", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "001", "name": "ملاعق طبخ استيل — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "ملاعق طبخ سيلكون — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "ملاعق طبخ خشب — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "كنك — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "طقم مطبخ — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "مفك علب — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "هراسة ثوم — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "عصارة ليمون — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "ملعقة ايسكريم — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "فرش زيت — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "مصفى استيل — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "شبك شواء — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "قوالب كيك ومعمول — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "014", "name": "عدة حلا — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "015", "name": "قطاعة بيض — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016", "name": "قالب سمبوسه — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "017", "name": "سكاكين — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "018", "name": "سواطير — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "019", "name": "ملقاط — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "020", "name": "مضرب سيليكون — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "021", "name": "مضرب حديد — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "022", "name": "قطاعة عجين — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "023", "name": "بشارة — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "024", "name": "مطرقة لحم — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "025", "name": "ولاعات — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "026", "name": "نجر — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "027", "name": "صحون كيك — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "028", "name": "مقالي تيفال — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "029", "name": "مقالي الومنيوم — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "030", "name": "قدور — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "031", "name": "برطمان زجاج — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "032", "name": "برطمان استيل — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "035", "name": "موقف موقت — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "037", "name": "قماش عازل حراره — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "038", "name": "مناشف مطبخ — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "039", "name": "مريلة — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "040", "name": "مسن سكاكين — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "041", "name": "خظاظ بيض — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "042", "name": "قطاعة — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "043", "name": "صفاية مغاسل — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "044", "name": "مقصات — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "045", "name": "سيخ شوي — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "046", "name": "استاند — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "047", "name": "صواني بايركس — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "048", "name": "ماكس رول — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "049", "name": "صحون سفري — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "050", "name": "سفري — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "051", "name": "علب حديد — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "052", "name": "فلترات — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "053", "name": "كماليات مطبخ — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "054", "name": "حافظات طعام — ملحقات المطبخ", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "001", "name": "ملاعق اكل خشبية — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "ملاعق اكل استيل — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "ملاعق عسل — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "توزيعات — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "صحون فناجيل — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "كاسات زجاج — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "فناجيل قهوة — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "زبدية زجاج — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "سكرية زجاج — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "تمرية زجاج — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "كاسات عصير زجاج — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "صحون زجاج — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "زبدية المنيوم — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "014", "name": "صحون الومنيوم — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "015", "name": "طفريات تقديم — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016", "name": "صحون سيراميك — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "017", "name": "تقديمات خشبية — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "018", "name": "تقديمات ذهبية — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "019", "name": "صحون ميلامين — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "020", "name": "زبدية سيراميك — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "021", "name": "اطقم كاسات زجاج — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "022", "name": "اطقم بيالات زجاج — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "023", "name": "اكواب سيراميك — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "024", "name": "ابريق — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "025", "name": "ترامس — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "026", "name": "قارورة عصير — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "027", "name": "زبدية ملامين — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "028", "name": "لباد — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "029", "name": "صحون استيل — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "030", "name": "كماليات المائدة — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "031", "name": "جاكات عصير — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "032", "name": "كاسات ايسكريم — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "033", "name": "كاسات حرارية — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "034", "name": "رضاعات — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "035", "name": "تمريات استيل — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "036", "name": "علب كاتشب — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "037", "name": "مزيته — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "038", "name": "كاسات استيل — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "056", "name": "صحون الومنيوم — ملحقات المائدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "001", "name": "مستلزمات الدواليب — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "مستلزمات الأثاث — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "مستلزمات الأبواب — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "مستلزمات الأحذية — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "مستلزمات الخياطه — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "أدوات سباكه — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "أدوات كهرباء — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "شنطة رحلات — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "مستلزمات المطبخ — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "خردوات — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "طقم عدة — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "ملحقات جوال — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "غلاية وعصارة كهرباء — كهربائيات وخردوات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "الغذائية", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": []}, {"name": "المكتبية", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "001", "name": "مطارات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "حصالات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "سبورة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "الوان", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "لاصق", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "دفتر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "طوابع", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "ورق", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "أقلام", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "صلصال", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "ملفات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "الة حاسبة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "مقلمة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "061", "name": "أدوات مكتبية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "الملابس الداخلية", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "0013", "name": "جوارب", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "0014", "name": "فنايل وتشيرات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "0015", "name": "ملابس داخلية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "060", "name": "احذية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "ملابس داخلية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "البلاستيك الأرضي", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "004", "name": "حافظات بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "صحون بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "كاسات بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "019", "name": "ملاعق بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "علب بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "001", "name": "رفوف بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "سلة تنظيم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "014", "name": "برطمان بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "سطول زباله", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "سلة غسيل بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "020", "name": "شوك اكل بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "026", "name": "بخاخ ماء", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "024", "name": "طشت بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "021", "name": "علب صابون بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "كراسي بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "013", "name": "مصاصات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "025", "name": "سطل بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016", "name": "قوالب ثلج", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "012", "name": "طقم اكواب بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "جاك بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "مصفى بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "022", "name": "مكيال طعام", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "023", "name": "بانيو بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "027", "name": "جلدية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "015", "name": "عصارة بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "017", "name": "علب ايسكريم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "018", "name": "تمرية بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "028", "name": "تمرية بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "الاستهلاكية", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "004", "name": "أكياس نفايات رول", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "001", "name": "سفر بلاستيك", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "أكياس حفظ الطعام", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "سفر بالمتر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "أكياس نفايات معطره", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "أكياس علاقي", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "قفازات بلاستيكيه", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "أكياس تغليف", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "أكياس لحمة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "سفر قماش", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "أكياس نفايات بربطة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "الفحم", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "016", "name": "فحم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "المفروشات", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "001", "name": "لباد", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "مخدات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016036", "name": "مخدة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016037", "name": "مسند", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016038", "name": "سجاد", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "016060", "name": "دعاسات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "مسند", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "059", "name": "بطانية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "050", "name": "دعاسات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "الإكسسوارات", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "001", "name": "بنسات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "مشط", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "فرشة شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "شباسات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "طوق شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "ربطات شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "سبح ومحافظ وخواتم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "015", "name": "ربطات شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "العطور", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "001", "name": "عطور رجالي", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "عطور نسائي", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "معطر جسم", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "معطر شعر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "معطر جو", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "عطور شرقية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "كولونيا", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "بخور", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}, {"name": "الحفلات", "info": {"status": "", "payStatus": "", "account": "", "invoices": 0, "paid": 0}, "suppliers": ["اسم الشركة 1", "اسم الشركة 2", "اسم الشركة 3", "اسم الشركة 4", "اسم الشركة 5", "اسم الشركة 6", "اسم الشركة 7", "اسم الشركة 8", "اسم الشركة 9", "اسم الشركة 10", "اسم الشركة 11", "اسم الشركة 12", "اسم الشركة 13", "اسم الشركة 14", "اسم الشركة 15"], "rows": [{"code": "001", "name": "بالونات احرف", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "002", "name": "بالونات ارقام", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "003", "name": "منفخ بالونات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "004", "name": "فش هدايا", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "005", "name": "طقم حفلات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "006", "name": "بالونات حفلات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "007", "name": "أكياس تقديم مناسبات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "008", "name": "زينة حفلات", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "009", "name": "بخاخ زغوة", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "010", "name": "قناع تنكر", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}, {"code": "011", "name": "اعلام وطنية", "target": 0, "vals": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "note": ""}]}];
+
+/* ============================================================
+   Constants & state
+   ============================================================ */
+const LS_KEY = "qween-dashboard-v1";
+const PLACEHOLDER_RE = /^اسم الشركة \d+$/;
+const ST = {
+  DONE: "مكتمل", PROG: "تحت التنفيذ", FOLLOW: "يحتاج متابعة", NONE: "لم يبدأ",
+  OVER: "تجاوز المستهدف", NOTGT: "بدون مستهدف"
+};
+const CAT_STATUS_OPTS = ["", ST.DONE, ST.PROG, ST.FOLLOW, ST.NONE];
+const PAY_OPTS = ["", "تم السداد", "لم يتم السداد", "جزئي", "لا ينطبق"];
+const ACC_OPTS = ["", "مكتمل", "جاري", "لم يبدأ", "لا ينطبق"];
+
+let state;              // working copy of DATA (mutable, persisted)
+let savedAtIso = null;  // last-save timestamp
+let view = { screen: "overview", cat: -1, search: "", filter: "" };
+let saveTimer = null;
+
+const $  = (s, r) => (r || document).querySelector(s);
+const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
+const clone = (x) => JSON.parse(JSON.stringify(x));
+const fmt = (n) => (+n || 0).toLocaleString("en-US");
+const esc = (s) => String(s == null ? "" : s)
+  .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+/* ============================================================
+   Persistence
+   ============================================================ */
+function loadState() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (raw) {
+      const obj = JSON.parse(raw);
+      const data = Array.isArray(obj) ? obj : obj && obj.data;
+      if (validData(data)) {
+        state = data;
+        savedAtIso = (obj && obj.savedAt) || null;
+        return;
+      }
+    }
+  } catch (e) { /* corrupted storage -> fall through to embedded data */ }
+  state = clone(DATA);
+}
+function persistNow() {
+  savedAtIso = new Date().toISOString();
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify({ savedAt: savedAtIso, data: state }));
+  } catch (e) { toast("تعذّر الحفظ في المتصفح"); }
+  renderSavedAt();
+}
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(persistNow, 400);
+}
+function validData(d) {
+  return Array.isArray(d) && d.length > 0 && d.every(c =>
+    c && typeof c.name === "string" && Array.isArray(c.suppliers) &&
+    Array.isArray(c.rows) && c.info && typeof c.info === "object" &&
+    !Array.isArray(c.info) &&
+    c.rows.every(r => r && typeof r === "object" && Array.isArray(r.vals)));
+}
+function renderSavedAt() {
+  const el = $("#savedAt");
+  if (!savedAtIso) { el.textContent = "لم يتم الحفظ بعد"; return; }
+  const d = new Date(savedAtIso);
+  el.textContent = "آخر حفظ: " + d.toLocaleDateString("ar", { numberingSystem: "latn" }) + " " +
+    d.toLocaleTimeString("ar", { numberingSystem: "latn", hour: "2-digit", minute: "2-digit" });
+}
+
+/* ============================================================
+   Computations — must match the Excel formulas exactly
+   ============================================================ */
+function rowCalc(r) {
+  const target = +r.target || 0;
+  const reg = r.vals.reduce((a, b) => a + (+b || 0), 0);
+  const deficit = Math.max(target - reg, 0);
+  const pct = target === 0 ? 0 : Math.min(reg / target, 1);
+  let status = "";
+  if (target !== 0) {
+    status = pct >= 0.9 ? ST.DONE : pct >= 0.6 ? ST.PROG : pct >= 0.3 ? ST.FOLLOW : ST.NONE;
+  }
+  const excess = (target > 0 && reg > target) ? reg - target : 0;
+  return { target, reg, deficit, pct, status, excess };
+}
+function statusFromPct(target, reg) {
+  if (!target) return "";
+  const pct = Math.min(reg / target, 1);
+  return pct >= 0.9 ? ST.DONE : pct >= 0.6 ? ST.PROG : pct >= 0.3 ? ST.FOLLOW : ST.NONE;
+}
+function catCalc(c) {
+  let target = 0, reg = 0, deficit = 0, excess = 0;
+  const counts = {};
+  for (const r of c.rows) {
+    const k = rowCalc(r);
+    target += k.target; reg += k.reg; deficit += k.deficit; excess += k.excess;
+    counts[k.status || ST.NOTGT] = (counts[k.status || ST.NOTGT] || 0) + 1;
+  }
+  const pct = target === 0 ? 0 : Math.min(reg / target, 1);
+  return { target, reg, deficit, excess, pct, status: statusFromPct(target, reg), counts };
+}
+function branchCalc() {
+  let target = 0, reg = 0, deficit = 0, excess = 0, invoices = 0, paid = 0;
+  const counts = {};
+  for (const c of state) {
+    const k = catCalc(c);
+    target += k.target; reg += k.reg; deficit += k.deficit; excess += k.excess;
+    invoices += (+c.info.invoices || 0); paid += (+c.info.paid || 0);
+    for (const key in k.counts) counts[key] = (counts[key] || 0) + k.counts[key];
+  }
+  const pct = target === 0 ? 0 : Math.min(reg / target, 1);
+  return { target, reg, deficit, excess, invoices, paid, pct, counts };
+}
+function visibleSupplierIdx(c) {
+  const out = [];
+  c.suppliers.forEach((s, i) => {
+    const nm = String(s || "").trim();
+    if (nm && !PLACEHOLDER_RE.test(nm)) out.push(i);
+  });
+  return out;
+}
+
+/* ============================================================
+   Small UI pieces
+   ============================================================ */
+function stClass(status) {
+  switch (status) {
+    case ST.DONE: return "s-done"; case ST.PROG: return "s-prog";
+    case ST.FOLLOW: return "s-follow"; case ST.NONE: return "s-none";
+    default: return "s-blank";
+  }
+}
+function fillClass(status) {
+  switch (status) {
+    case ST.DONE: return "f-done"; case ST.PROG: return "f-prog";
+    case ST.FOLLOW: return "f-follow"; case ST.NONE: return "f-none";
+    default: return "";
+  }
+}
+function chipHTML(status) {
+  if (!status) return '<span class="st s-blank">—</span>';
+  return '<span class="st ' + stClass(status) + '">' + esc(status) + "</span>";
+}
+function overBadgeHTML(excess) {
+  if (!excess) return "";
+  return '<span class="badge-over">تجاوز المستهدف +' + fmt(excess) + "</span>";
+}
+function barHTML(k) {
+  const w = Math.round(k.pct * 1000) / 10;
+  let over = "";
+  if (k.excess > 0 && k.target > 0) {
+    const ow = Math.max(6, Math.min(30, (k.excess / k.target) * 100));
+    over = '<span class="overflow" style="width:' + ow.toFixed(1) + '%" title="تجاوز +' + fmt(k.excess) + '"></span>';
+  }
+  return '<div class="bar-line"><div class="bar">' +
+    '<span class="fill ' + fillClass(k.status) + '" style="width:' + w + '%"></span>' + over +
+    '</div><span class="pct-txt">' + Math.round(k.pct * 100) + "%</span></div>";
+}
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* ============================================================
+   Filtering
+   ============================================================ */
+function rowMatches(r, k) {
+  if (view.search) {
+    const q = view.search.trim();
+    if (q && !(String(r.name).includes(q) || String(r.code).includes(q))) return false;
+  }
+  if (view.filter) {
+    if (view.filter === ST.OVER) return k.excess > 0;
+    return k.status === view.filter;
+  }
+  return true;
+}
+function catMatches(c, k) {
+  const anyRow = c.rows.some(r => rowMatches(r, rowCalc(r)));
+  if (view.search && !anyRow && !c.name.includes(view.search.trim())) return false;
+  if (view.filter) {
+    if (view.filter === ST.OVER) return k.excess > 0;
+    return k.status === view.filter || c.rows.some(r => rowCalc(r).status === view.filter);
+  }
+  return true;
+}
+
+/* ============================================================
+   Tab bar / chips
+   ============================================================ */
+function renderTabs() {
+  const bar = $("#tabbar");
+  let html = '<button class="tab' + (view.screen === "overview" ? " active" : "") +
+    '" data-tab="overview">نظرة عامة</button>';
+  state.forEach((c, i) => {
+    html += '<button class="tab' + (view.screen === "cat" && view.cat === i ? " active" : "") +
+      '" data-tab="' + i + '">' + esc(c.name) +
+      '<span class="cnt">(' + c.rows.length + ")</span></button>";
+  });
+  bar.innerHTML = html;
+  const act = $(".tab.active", bar);
+  if (act) act.scrollIntoView({ block: "nearest", inline: "center" });
+}
+function renderChips() {
+  const defs = [
+    { v: "", t: "الكل", cls: "" },
+    { v: ST.DONE, t: ST.DONE, cls: "" },
+    { v: ST.PROG, t: ST.PROG, cls: "" },
+    { v: ST.FOLLOW, t: ST.FOLLOW, cls: "" },
+    { v: ST.NONE, t: ST.NONE, cls: "" },
+    { v: ST.OVER, t: ST.OVER, cls: "c-over" }
+  ];
+  $("#chips").innerHTML = defs.map(d =>
+    '<button class="chip ' + d.cls + (view.filter === d.v ? " active" : "") +
+    '" data-filter="' + esc(d.v) + '">' + d.t + "</button>").join("");
+}
+
+/* ============================================================
+   Overview screen
+   ============================================================ */
+function donutSVG(counts, total) {
+  const order = [
+    [ST.DONE, "var(--done)"], [ST.PROG, "var(--prog)"],
+    [ST.FOLLOW, "var(--follow)"], [ST.NONE, "var(--none)"],
+    [ST.NOTGT, "#94a3b8"]
+  ];
+  const R = 54, CIRC = 2 * Math.PI * R;
+  let off = 0, segs = "";
+  for (const [key, col] of order) {
+    const n = counts[key] || 0;
+    if (!n || !total) continue;
+    const len = (n / total) * CIRC;
+    segs += '<circle cx="70" cy="70" r="' + R + '" fill="none" stroke="' + col +
+      '" stroke-width="20" stroke-dasharray="' + len.toFixed(2) + " " + (CIRC - len).toFixed(2) +
+      '" stroke-dashoffset="' + (-off).toFixed(2) + '" transform="rotate(-90 70 70)"></circle>';
+    off += len;
+  }
+  if (!segs) segs = '<circle cx="70" cy="70" r="' + R + '" fill="none" stroke="var(--muted-bg)" stroke-width="20"></circle>';
+  const legend = order.map(([key, col]) =>
+    '<div class="li"><span class="sw" style="background:' + col + '"></span>' +
+    esc(key) + ' <b style="direction:ltr">' + fmt(counts[key] || 0) + "</b></div>").join("");
+  return '<div class="donut-wrap"><svg width="140" height="140" viewBox="0 0 140 140" role="img" aria-label="توزيع حالات الأصناف">' +
+    segs + '<text x="70" y="66" text-anchor="middle" class="donut-center">' + fmt(total) + "</text>" +
+    '<text x="70" y="82" text-anchor="middle" class="donut-center-sub">صنف فرعي</text></svg>' +
+    '<div class="donut-legend">' + legend + "</div></div>";
+}
+function renderOverview() {
+  const b = branchCalc();
+  const kpis =
+    '<div class="kpis">' +
+    '<div class="kpi"><div class="lbl">إجمالي مستهدف الفرع</div><div class="val">' + fmt(b.target) + "</div></div>" +
+    '<div class="kpi k-reg"><div class="lbl">إجمالي المسجل</div><div class="val">' + fmt(b.reg) + "</div></div>" +
+    '<div class="kpi k-def"><div class="lbl">إجمالي العجز</div><div class="val">' + fmt(b.deficit) + "</div></div>" +
+    '<div class="kpi"><div class="lbl">نسبة إنجاز الفرع</div><div class="val">' + Math.round(b.pct * 100) + '%</div>' +
+      '<div style="margin-top:6px">' + barHTMLplain(b) + "</div></div>" +
+    '<div class="kpi k-over"><div class="lbl">إجمالي التجاوز</div><div class="val">' +
+      (b.excess ? "+" + fmt(b.excess) : "0") + '</div><div class="sub">' +
+      (b.excess ? "كميات فوق المستهدف" : "لا يوجد تجاوز") + "</div></div>" +
+    '<div class="kpi k-money"><div class="lbl">قيمة الفواتير</div><div class="val">' + fmt(b.invoices) + '</div><div class="sub">ريال سعودي</div></div>' +
+    '<div class="kpi k-money"><div class="lbl">المبالغ المسددة</div><div class="val">' + fmt(b.paid) + '</div><div class="sub">ريال سعودي</div></div>' +
+    "</div>";
+
+  const totalRows = Object.values(b.counts).reduce((a, n) => a + n, 0);
+  const donut = '<div class="panel p-donut"><h3>توزيع حالات الأصناف الفرعية</h3>' +
+    donutSVG(b.counts, totalRows) + "</div>";
+
+  let trs = "", cards = "", shown = 0;
+  state.forEach((c, i) => {
+    const k = catCalc(c);
+    if (!catMatches(c, k)) return;
+    shown++;
+    trs += '<tr data-goto="' + i + '"><td class="cat-name">' + esc(c.name) +
+      '</td><td class="num">' + fmt(k.target) + '</td><td class="num">' + fmt(k.reg) +
+      '</td><td class="num">' + fmt(k.deficit) + "</td><td>" + barHTML(k) + "</td><td>" +
+      chipHTML(k.status) + "</td><td>" + (overBadgeHTML(k.excess) || '<span style="color:var(--muted)">—</span>') +
+      "</td></tr>";
+    cards += '<div class="ov-card" data-goto="' + i + '"><div class="top"><span class="nm">' +
+      esc(c.name) + "</span>" + chipHTML(k.status) + overBadgeHTML(k.excess) + "</div>" +
+      '<div class="nums"><span>المستهدف <b>' + fmt(k.target) + "</b></span><span>المسجل <b>" +
+      fmt(k.reg) + "</b></span><span>العجز <b>" + fmt(k.deficit) + "</b></span></div>" +
+      barHTML(k) + "</div>";
+  });
+  if (!shown) {
+    trs = '<tr><td colspan="7"><div class="empty-note">لا توجد أقسام مطابقة للبحث أو الفلتر الحالي</div></td></tr>';
+    cards = '<div class="empty-note">لا توجد أقسام مطابقة للبحث أو الفلتر الحالي</div>';
+  }
+  const catsPanel = '<div class="panel p-cats"><h3>الأقسام (' + state.length + ")</h3>" +
+    '<div class="ov-table-wrap"><table class="ov"><thead><tr>' +
+    "<th>القسم</th><th>المستهدف</th><th>المسجل</th><th>العجز</th><th>نسبة الإنجاز</th><th>الحالة</th><th>التجاوز</th>" +
+    "</tr></thead><tbody>" + trs + "</tbody></table></div>" +
+    '<div class="ov-cards">' + cards + "</div></div>";
+
+  $("#main").innerHTML = kpis +
+    '<div class="section-title">تفاصيل الأقسام</div>' +
+    '<div class="ov-grid">' + catsPanel + donut + "</div>";
+
+  $$("[data-goto]").forEach(el => el.addEventListener("click", () => {
+    view.screen = "cat"; view.cat = +el.dataset.goto; render();
+    window.scrollTo({ top: 0 });
+  }));
+}
+function barHTMLplain(k) {
+  let over = "";
+  if (k.excess > 0 && k.target > 0) {
+    const ow = Math.max(6, Math.min(30, (k.excess / k.target) * 100));
+    over = '<span class="overflow" style="width:' + ow.toFixed(1) + '%" title="تجاوز +' + fmt(k.excess) + '"></span>';
+  }
+  return '<div class="bar"><span class="fill" style="width:' + Math.round(k.pct * 100) + '%"></span>' + over + "</div>";
+}
+
+/* ============================================================
+   Category screen
+   ============================================================ */
+function selectHTML(opts, cur, attrs) {
+  return "<select " + attrs + ">" + opts.map(o =>
+    '<option value="' + esc(o) + '"' + (o === cur ? " selected" : "") + ">" +
+    (o === "" ? "—" : esc(o)) + "</option>").join("") + "</select>";
+}
+function catTotalsHTML(k) {
+  return '<div class="kpis" id="catTotals">' +
+    '<div class="kpi"><div class="lbl">مستهدف القسم</div><div class="val">' + fmt(k.target) + "</div></div>" +
+    '<div class="kpi k-reg"><div class="lbl">إجمالي المسجل</div><div class="val">' + fmt(k.reg) + "</div></div>" +
+    '<div class="kpi k-def"><div class="lbl">العجز</div><div class="val">' + fmt(k.deficit) + "</div></div>" +
+    '<div class="kpi"><div class="lbl">نسبة الإنجاز</div><div class="val">' + Math.round(k.pct * 100) + "%</div>" +
+      '<div style="margin-top:6px">' + barHTMLplain(k) + "</div></div>" +
+    '<div class="kpi k-over"><div class="lbl">التجاوز</div><div class="val">' +
+      (k.excess ? "+" + fmt(k.excess) : "0") + "</div></div></div>";
+}
+function renderCategory() {
+  const ci = view.cat, c = state[ci];
+  if (!c) { view.screen = "overview"; renderOverview(); return; }
+  const k = catCalc(c);
+  const vis = visibleSupplierIdx(c);
+
+  const head =
+    '<div class="cat-head"><button class="back-btn" id="backBtn">&rarr; رجوع</button>' +
+    '<span class="cat-title">' + esc(c.name) + "</span>" + chipHTML(k.status) + overBadgeHTML(k.excess) + "</div>";
+
+  const info =
+    '<div class="cat-info">' +
+    '<div class="field"><label>حالة القسم</label>' + selectHTML(CAT_STATUS_OPTS, c.info.status, 'data-info="status"') + "</div>" +
+    '<div class="field"><label>حالة السداد</label>' + selectHTML(PAY_OPTS, c.info.payStatus, 'data-info="payStatus"') + "</div>" +
+    '<div class="field"><label>فتح الحساب</label>' + selectHTML(ACC_OPTS, c.info.account, 'data-info="account"') + "</div>" +
+    '<div class="field"><label>قيمة الفواتير (ريال)</label><input type="number" min="0" step="any" value="' +
+      (+c.info.invoices || 0) + '" data-info="invoices"></div>' +
+    '<div class="field"><label>مبلغ السداد (ريال)</label><input type="number" min="0" step="any" value="' +
+      (+c.info.paid || 0) + '" data-info="paid"></div>' +
+    "</div>";
+
+  const actions =
+    '<div class="cat-actions"><button class="act-btn" id="addRowBtn">+ إضافة صنف فرعي</button>' +
+    '<button class="act-btn" id="addSupBtn">+ إضافة مورد</button></div>';
+
+  /* ---- desktop table ---- */
+  let thead = '<tr><th class="sticky">الصنف الفرعي</th><th>الكود</th><th>المستهدف</th>';
+  vis.forEach(si => { thead += "<th>" + esc(c.suppliers[si]) + "</th>"; });
+  thead += "<th>المسجل</th><th>العجز</th><th>النسبة</th><th>الحالة</th><th>التجاوز</th><th>ملاحظات</th></tr>";
+
+  let tbody = "", cardsHtml = "", shown = 0;
+  c.rows.forEach((r, ri) => {
+    const rk = rowCalc(r);
+    if (!rowMatches(r, rk)) return;
+    shown++;
+    const id = ci + ":" + ri;
+    /* table row */
+    let tds = '<td class="sticky"><input class="cell-in txt" type="text" value="' + esc(r.name) +
+      '" data-cell="' + id + ':name"></td>';
+    tds += '<td><input class="cell-in code" type="text" value="' + esc(r.code) + '" data-cell="' + id + ':code"></td>';
+    tds += '<td><input class="cell-in" type="number" min="0" value="' + (+r.target || 0) + '" data-cell="' + id + ':target"></td>';
+    vis.forEach(si => {
+      tds += '<td><input class="cell-in" type="number" min="0" value="' + (+r.vals[si] || 0) +
+        '" data-cell="' + id + ":v" + si + '"></td>';
+    });
+    tds += '<td class="num" data-rc="' + id + ':reg">' + fmt(rk.reg) + "</td>" +
+      '<td class="num" data-rc="' + id + ':def">' + fmt(rk.deficit) + "</td>" +
+      '<td style="min-width:120px" data-rc="' + id + ':bar">' + barHTML(rk) + "</td>" +
+      '<td data-rc="' + id + ':st">' + chipHTML(rk.status) + "</td>" +
+      '<td data-rc="' + id + ':over">' + (overBadgeHTML(rk.excess) || "—") + "</td>" +
+      '<td><input class="cell-in txt" type="text" value="' + esc(r.note) + '" data-cell="' + id + ':note"></td>';
+    tbody += "<tr>" + tds + "</tr>";
+
+    /* mobile card */
+    let sup = "";
+    vis.forEach(si => {
+      sup += '<div class="sup-cell"><label>' + esc(c.suppliers[si]) + "</label>" +
+        '<input type="number" min="0" value="' + (+r.vals[si] || 0) + '" data-cell="' + id + ":v" + si + '"></div>';
+    });
+    if (!vis.length) sup = '<div class="empty-note" style="padding:12px">لا توجد أعمدة موردين معرفة — استخدم زر «إضافة مورد»</div>';
+    cardsHtml +=
+      '<details class="sub-card"><summary><div class="sum-top"><span class="sum-nm" data-rc="' + id + ':nm">' +
+      esc(r.name || "بدون اسم") + "</span>" +
+      '<span data-rc="' + id + ':st2">' + chipHTML(rk.status) + "</span>" +
+      '<span data-rc="' + id + ':over2">' + overBadgeHTML(rk.excess) + "</span>" +
+      '<span class="chev">&#9660;</span></div>' +
+      '<div class="sum-nums">المستهدف <b data-rc="' + id + ':tgt2">' + fmt(rk.target) +
+      "</b> &nbsp;•&nbsp; المسجل <b data-rc=\"" + id + ':reg2">' + fmt(rk.reg) +
+      "</b> &nbsp;•&nbsp; العجز <b data-rc=\"" + id + ':def2">' + fmt(rk.deficit) + "</b></div>" +
+      '<div data-rc="' + id + ':bar2">' + barHTML(rk) + "</div></summary>" +
+      '<div class="body"><div class="sub-meta">' +
+      '<div class="sup-cell"><label>اسم الصنف</label><input type="text" style="direction:rtl;text-align:right" value="' +
+      esc(r.name) + '" data-cell="' + id + ':name"></div>' +
+      '<div class="sup-cell"><label>المستهدف</label><input type="number" min="0" value="' + (+r.target || 0) +
+      '" data-cell="' + id + ':target"></div></div>' +
+      '<div class="sup-grid">' + sup + "</div>" +
+      '<div class="sub-meta" style="grid-template-columns:1fr"><div class="sup-cell"><label>ملاحظات</label>' +
+      '<input type="text" style="direction:rtl;text-align:right" value="' + esc(r.note) +
+      '" data-cell="' + id + ':note"></div></div></div></details>';
+  });
+
+  const foot = '<tr><td class="sticky">الإجمالي (' + c.rows.length + " صنف)</td><td></td>" +
+    '<td class="num" data-ct="target">' + fmt(k.target) + "</td>" +
+    vis.map(si => '<td class="num" data-ct="s' + si + '">' +
+      fmt(c.rows.reduce((a, r) => a + (+r.vals[si] || 0), 0)) + "</td>").join("") +
+    '<td class="num" data-ct="reg">' + fmt(k.reg) + '</td><td class="num" data-ct="def">' + fmt(k.deficit) +
+    '</td><td data-ct="bar">' + barHTML(k) + '</td><td data-ct="st">' + chipHTML(k.status) +
+    '</td><td data-ct="over">' + (overBadgeHTML(k.excess) || "—") + "</td><td></td></tr>";
+
+  const emptyMsg = c.rows.length === 0
+    ? '<div class="empty-note">لا توجد أصناف في هذا القسم بعد — أضف صنفًا فرعيًا للبدء</div>'
+    : (!shown ? '<div class="empty-note">لا توجد أصناف مطابقة للبحث أو الفلتر الحالي</div>' : "");
+
+  const tableHtml = shown
+    ? '<div class="cat-table-wrap"><table class="ct"><thead>' + thead + "</thead><tbody>" +
+      tbody + "</tbody><tfoot>" + foot + "</tfoot></table></div>"
+    : "";
+
+  $("#main").innerHTML = head + catTotalsHTML(k) +
+    '<div class="section-title">بيانات القسم</div>' + info +
+    '<div class="section-title">الأصناف الفرعية' +
+    (vis.length ? "" : ' <span style="font-weight:400;color:var(--muted)">(لا توجد أعمدة موردين معرفة)</span>') +
+    "</div>" + actions + emptyMsg + tableHtml +
+    '<div class="cat-cards">' + (shown ? cardsHtml : "") + "</div>";
+
+  bindCategoryEvents(ci);
+}
+
+function bindCategoryEvents(ci) {
+  $("#backBtn").addEventListener("click", () => { view.screen = "overview"; view.cat = -1; render(); });
+
+  $$("[data-info]").forEach(el => {
+    el.addEventListener("input", () => {
+      const key = el.dataset.info;
+      state[ci].info[key] = (el.type === "number") ? Math.max(0, +el.value || 0) : el.value;
+      scheduleSave();
+    });
+  });
+
+  $$("[data-cell]").forEach(el => {
+    el.addEventListener("input", () => onCellInput(el));
+  });
+
+  $("#addRowBtn").addEventListener("click", () => {
+    const c = state[ci];
+    c.rows.push({ code: "", name: "صنف جديد", target: 0,
+      vals: new Array(c.suppliers.length).fill(0), note: "" });
+    scheduleSave(); render();
+    toast("تمت إضافة صنف فرعي جديد");
+  });
+
+  $("#addSupBtn").addEventListener("click", () => {
+    const c = state[ci];
+    const free = c.suppliers.findIndex(s => {
+      const nm = String(s || "").trim();
+      return !nm || PLACEHOLDER_RE.test(nm);
+    });
+    if (free === -1) { toast("لا توجد أعمدة موردين متاحة (الحد 15 موردًا)"); return; }
+    const name = prompt("اسم المورد الجديد:");
+    if (!name || !name.trim()) return;
+    c.suppliers[free] = name.trim();
+    scheduleSave(); render();
+    toast("تمت إضافة المورد «" + name.trim() + "»");
+  });
+}
+
+function onCellInput(el) {
+  const parts = el.dataset.cell.split(":");        // ci : ri : field
+  const ci = +parts[0], ri = +parts[1], field = parts[2];
+  const r = state[ci] && state[ci].rows[ri];
+  if (!r) return;
+  if (field === "name") r.name = el.value;
+  else if (field === "code") r.code = el.value;
+  else if (field === "note") r.note = el.value;
+  else if (field === "target") r.target = Math.max(0, +el.value || 0);
+  else if (field[0] === "v") r.vals[+field.slice(1)] = Math.max(0, +el.value || 0);
+
+  /* mirror value into the twin input (table <-> card) */
+  $$('[data-cell="' + el.dataset.cell + '"]').forEach(twin => {
+    if (twin !== el && twin.value !== el.value) twin.value = el.value;
+  });
+  refreshRowComputed(ci, ri);
+  refreshCatComputed(ci);
+  scheduleSave();
+}
+
+function refreshRowComputed(ci, ri) {
+  const r = state[ci].rows[ri], k = rowCalc(r);
+  const id = ci + ":" + ri;
+  const set = (suffix, html) => {
+    $$('[data-rc="' + id + ":" + suffix + '"]').forEach(el => { el.innerHTML = html; });
+  };
+  set("nm", esc(r.name || "بدون اسم"));
+  set("reg", fmt(k.reg));   set("reg2", fmt(k.reg));
+  set("def", fmt(k.deficit)); set("def2", fmt(k.deficit));
+  set("tgt2", fmt(k.target));
+  set("bar", barHTML(k));   set("bar2", barHTML(k));
+  set("st", chipHTML(k.status)); set("st2", chipHTML(k.status));
+  set("over", overBadgeHTML(k.excess) || "—");
+  set("over2", overBadgeHTML(k.excess));
+}
+function refreshCatComputed(ci) {
+  const c = state[ci], k = catCalc(c);
+  const totals = $("#catTotals");
+  if (totals) totals.outerHTML = catTotalsHTML(k);
+  const set = (key, html) => { $$('[data-ct="' + key + '"]').forEach(el => { el.innerHTML = html; }); };
+  set("target", fmt(k.target)); set("reg", fmt(k.reg)); set("def", fmt(k.deficit));
+  set("bar", barHTML(k)); set("st", chipHTML(k.status));
+  set("over", overBadgeHTML(k.excess) || "—");
+  visibleSupplierIdx(c).forEach(si => {
+    set("s" + si, fmt(c.rows.reduce((a, r) => a + (+r.vals[si] || 0), 0)));
+  });
+}
+
+/* ============================================================
+   Export / import / reset
+   ============================================================ */
+function download(blob, filename) {
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
+}
+function exportJSON() {
+  download(new Blob([JSON.stringify(state, null, 2)], { type: "application/json" }),
+    "qween-dashboard.json");
+  toast("تم تصدير ملف JSON");
+}
+function exportCSV() {
+  const head = ["القسم", "الكود", "الصنف الفرعي", "المستهدف", "إجمالي المسجل",
+    "العجز", "نسبة الإنجاز", "الحالة", "التجاوز", "ملاحظات"];
+  const lines = [head];
+  for (const c of state) {
+    for (const r of c.rows) {
+      const k = rowCalc(r);
+      lines.push([c.name, r.code, r.name, k.target, k.reg, k.deficit,
+        Math.round(k.pct * 100) + "%", k.status, k.excess || "", r.note]);
+    }
+  }
+  const csv = "\uFEFF" + lines.map(row => row.map(v => {
+    v = String(v == null ? "" : v);
+    return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }).join(",")).join("\r\n");
+  download(new Blob([csv], { type: "text/csv;charset=utf-8" }), "qween-dashboard.csv");
+  toast("تم تصدير ملف CSV");
+}
+function importJSON(file) {
+  const rd = new FileReader();
+  rd.onload = () => {
+    const prev = state;
+    try {
+      const obj = JSON.parse(rd.result);
+      const data = Array.isArray(obj) ? obj : obj && obj.data;
+      if (!validData(data)) throw new Error("bad shape");
+      state = data;
+      render();          // render first: a throw here must not persist bad state
+      persistNow();
+      toast("تم استيراد البيانات بنجاح");
+    } catch (e) {
+      state = prev;
+      render();
+      toast("ملف غير صالح — تعذّر الاستيراد");
+    }
+  };
+  rd.readAsText(file, "utf-8");
+}
+function resetAll() {
+  if (!confirm("سيتم حذف جميع التعديلات المحفوظة والعودة إلى البيانات الأصلية. هل أنت متأكد؟")) return;
+  localStorage.removeItem(LS_KEY);
+  state = clone(DATA);
+  savedAtIso = null;
+  renderSavedAt(); render();
+  toast("تمت إعادة التعيين إلى البيانات الأصلية");
+}
+
+/* ============================================================
+   Render root & events
+   ============================================================ */
+function render() {
+  renderTabs();
+  renderChips();
+  if (view.screen === "overview") renderOverview();
+  else renderCategory();
+}
+document.addEventListener("click", (e) => {
+  const tab = e.target.closest("[data-tab]");
+  if (tab) {
+    const v = tab.dataset.tab;
+    if (v === "overview") { view.screen = "overview"; view.cat = -1; }
+    else { view.screen = "cat"; view.cat = +v; }
+    render();
+    return;
+  }
+  const chip = e.target.closest("[data-filter]");
+  if (chip) { view.filter = chip.dataset.filter; render(); }
+});
+let searchTimer = null;
+$("#searchIn").addEventListener("input", (e) => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => { view.search = e.target.value; render(); }, 250);
+});
+$("#btnExportJson").addEventListener("click", exportJSON);
+$("#btnExportCsv").addEventListener("click", exportCSV);
+$("#btnReset").addEventListener("click", resetAll);
+$("#btnImportJson").addEventListener("click", () => $("#importFile").click());
+$("#importFile").addEventListener("change", (e) => {
+  const f = e.target.files[0];
+  if (f) importJSON(f);
+  e.target.value = "";
+});
+
+/* keep the tabbar stuck right under the header regardless of header wrap height */
+function syncHeaderHeight() {
+  document.documentElement.style.setProperty("--hdr-h", $("#appHeader").offsetHeight + "px");
+}
+if (window.ResizeObserver) new ResizeObserver(syncHeaderHeight).observe($("#appHeader"));
+else window.addEventListener("resize", syncHeaderHeight);
+
+/* ---- boot ---- */
+loadState();
+renderSavedAt();
+render();
+syncHeaderHeight();
+</script>
+</body>
+</html>
