@@ -1,0 +1,5 @@
+# Local Claude Code config (machine-specific)
+.claude/
+
+# OS / editor cruft
+.DS_Store

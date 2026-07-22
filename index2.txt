@@ -1,0 +1,2405 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>نظام إدارة أوردرات الموردين - Lamsat Suppliers Pro</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root {
+  --primary: #d4a853;
+  --primary-hover: #c49a4a;
+  --primary-light: rgba(212, 168, 83, 0.1);
+  --primary-glow: rgba(212, 168, 83, 0.3);
+  --bg-dark: #0a0e1a;
+  --bg-card: #151b2d;
+  --bg-hover: #1e2538;
+  --bg-input: #0f1420;
+  --text-main: #f0f4f8;
+  --text-secondary: #8b9aae;
+  --border-color: #2a3447;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #3b82f6;
+  --purple: #8b5cf6;
+  --gold: #ffd700;
+  --silver: #c0c0c0;
+  --bronze: #cd7f32;
+  --glass: rgba(21, 27, 45, 0.85);
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --shadow-gold: 0 4px 20px rgba(212, 168, 83, 0.25);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Tajawal', sans-serif; }
+body {
+  background: linear-gradient(135deg, var(--bg-dark) 0%, #0f172a 100%);
+  color: var(--text-main);
+  line-height: 1.6;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-dark); }
+::-webkit-scrollbar-thumb { background: var(--border-color); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
+
+/* Loading */
+.loading-overlay {
+  position: fixed; inset: 0; background: rgba(10, 14, 26, 0.95);
+  z-index: 9999; display: none; flex-direction: column;
+  align-items: center; justify-content: center; backdrop-filter: blur(10px);
+}
+.loading-overlay.active { display: flex; }
+.loading-spinner {
+  width: 70px; height: 70px; border: 4px solid var(--border-color);
+  border-top-color: var(--primary); border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { margin-top: 1.5rem; font-size: 1.1rem; color: var(--primary); font-weight: 600; }
+
+/* Header */
+.header {
+  background: var(--glass); backdrop-filter: blur(20px);
+  padding: 1rem 2rem; border-bottom: 1px solid var(--border-color);
+  position: sticky; top: 0; z-index: 1000;
+  display: flex; justify-content: space-between; align-items: center;
+  box-shadow: var(--shadow); flex-wrap: wrap; gap: 1rem;
+}
+.header-content { display: flex; align-items: center; gap: 1rem; }
+.logo-icon {
+  width: 50px; height: 50px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  border-radius: 12px; display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem; color: #fff; box-shadow: var(--shadow-gold);
+}
+.header-title h1 {
+  font-size: 1.4rem; font-weight: 800;
+  background: linear-gradient(135deg, var(--primary), #fff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.header-title p { font-size: 0.85rem; color: var(--text-secondary); }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn {
+  border: none; padding: 0.6rem 1.1rem; border-radius: 8px;
+  cursor: pointer; font-weight: 600; font-size: 0.85rem;
+  transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px;
+  font-family: inherit;
+}
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  color: #fff; box-shadow: var(--shadow-gold);
+}
+.btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 25px rgba(212, 168, 83, 0.4); }
+.btn-secondary { background: var(--bg-card); border: 1px solid var(--border-color); color: var(--text-main); }
+.btn-secondary:hover { background: var(--bg-hover); border-color: var(--primary); }
+.btn-success { background: linear-gradient(135deg, var(--success), #059669); color: #fff; }
+.btn-danger { background: linear-gradient(135deg, var(--danger), #dc2626); color: #fff; }
+.btn-info { background: linear-gradient(135deg, var(--info), #2563eb); color: #fff; }
+.btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+
+/* Container */
+.container { width: 100%; padding: 1.5rem 2rem; margin: 0 auto; max-width: 1600px; }
+
+/* Stats */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+.stat-card {
+  background: var(--bg-card); padding: 1.3rem; border-radius: 14px;
+  border: 1px solid var(--border-color); position: relative; overflow: hidden;
+  transition: all 0.3s;
+}
+.stat-card:hover { transform: translateY(-3px); border-color: var(--primary); box-shadow: var(--shadow-gold); }
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 3px;
+  background: linear-gradient(90deg, var(--primary), transparent);
+}
+.stat-icon { position: absolute; top: 1rem; left: 1rem; font-size: 2rem; opacity: 0.1; color: var(--primary); }
+.stat-label { color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 0.4rem; }
+.stat-value { font-size: 1.8rem; font-weight: 800; color: #fff; }
+.stat-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.3rem; }
+
+/* Tabs */
+.tabs-row {
+  display: flex; gap: 0.4rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+  background: var(--bg-card); padding: 0.4rem; border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+.tab-btn {
+  flex: 1; min-width: 130px; padding: 0.7rem 1rem; border: none;
+  background: transparent; color: var(--text-secondary); cursor: pointer;
+  border-radius: 8px; font-weight: 600; transition: all 0.3s;
+  font-size: 0.85rem; display: flex; align-items: center; justify-content: center; gap: 6px;
+  font-family: inherit;
+}
+.tab-btn:hover { color: var(--text-main); background: var(--bg-hover); }
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  color: #fff; box-shadow: var(--shadow-gold);
+}
+.tab-content { display: none; animation: fadeIn 0.4s; }
+.tab-content.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Card */
+.card {
+  background: var(--bg-card); border-radius: 14px;
+  border: 1px solid var(--border-color); padding: 1.3rem;
+  margin-bottom: 1.3rem; box-shadow: var(--shadow);
+}
+.card-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 1.2rem; padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.8rem;
+}
+.card-title {
+  font-size: 1.1rem; font-weight: 700; color: var(--primary);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* Search Bar */
+.search-bar {
+  position: relative; flex: 1; max-width: 500px; min-width: 250px;
+}
+.search-input {
+  width: 100%; padding: 0.7rem 1rem 0.7rem 2.8rem;
+  background: var(--bg-input); border: 1px solid var(--border-color);
+  border-radius: 10px; color: var(--text-main); font-size: 0.9rem;
+  transition: all 0.3s; outline: none; font-family: inherit;
+}
+.search-input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+.search-icon {
+  position: absolute; right: 1rem; top: 50%; transform: translateY(-50%);
+  color: var(--text-secondary); pointer-events: none;
+}
+
+/* Filters */
+.filters-row {
+  display: flex; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 1rem; align-items: center;
+}
+.filter-select {
+  padding: 0.6rem 0.9rem; background: var(--bg-input);
+  border: 1px solid var(--border-color); border-radius: 8px;
+  color: var(--text-main); font-size: 0.85rem; outline: none;
+  cursor: pointer; font-family: inherit;
+}
+.filter-select:focus { border-color: var(--primary); }
+
+/* Supplier Cards Grid */
+.suppliers-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.2rem;
+}
+.supplier-card {
+  background: var(--bg-card); border-radius: 14px;
+  border: 1px solid var(--border-color); padding: 1.3rem;
+  transition: all 0.3s; position: relative; overflow: hidden;
+}
+.supplier-card:hover {
+  transform: translateY(-4px); border-color: var(--primary);
+  box-shadow: 0 10px 30px rgba(212, 168, 83, 0.2);
+}
+.supplier-card::before {
+  content: ''; position: absolute; top: 0; right: 0; width: 100%; height: 4px;
+  background: linear-gradient(90deg, var(--primary), transparent);
+}
+.supplier-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+.supplier-avatar {
+  width: 50px; height: 50px; border-radius: 12px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; color: #fff; font-weight: 800;
+  box-shadow: var(--shadow-gold);
+}
+.supplier-info { flex: 1; margin-right: 1rem; }
+.supplier-name { font-size: 1.1rem; font-weight: 700; color: #fff; margin-bottom: 0.2rem; }
+.supplier-contact { font-size: 0.8rem; color: var(--text-secondary); }
+.supplier-status {
+  padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.75rem; font-weight: 600;
+}
+.status-active { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16, 185, 129, 0.3); }
+.status-inactive { background: rgba(239, 68, 68, 0.15); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.3); }
+.supplier-stats {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;
+  margin: 1rem 0; padding: 0.8rem; background: var(--bg-input); border-radius: 10px;
+}
+.supplier-stat { text-align: center; }
+.supplier-stat-label { font-size: 0.75rem; color: var(--text-secondary); }
+.supplier-stat-value { font-size: 1.1rem; font-weight: 700; color: var(--primary); margin-top: 0.2rem; }
+.supplier-categories {
+  display: flex; flex-wrap: wrap; gap: 0.3rem; margin-bottom: 1rem;
+  max-height: 70px; overflow: hidden;
+}
+.category-chip {
+  padding: 0.2rem 0.6rem; background: var(--primary-light);
+  border: 1px solid rgba(212, 168, 83, 0.3); border-radius: 12px;
+  font-size: 0.7rem; color: var(--primary); font-weight: 600;
+}
+.supplier-actions { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+
+/* Modal */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.75);
+  z-index: 5000; display: none; align-items: center; justify-content: center;
+  backdrop-filter: blur(5px); padding: 1rem;
+}
+.modal-overlay.active { display: flex; }
+.modal {
+  background: var(--bg-card); border-radius: 16px;
+  border: 1px solid var(--border-color); width: 100%;
+  max-width: 800px; max-height: 90vh; overflow: hidden;
+  display: flex; flex-direction: column; box-shadow: var(--shadow);
+  animation: modalIn 0.3s;
+}
+.modal-lg { max-width: 1100px; }
+@keyframes modalIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-header {
+  padding: 1.2rem 1.5rem; border-bottom: 1px solid var(--border-color);
+  display: flex; justify-content: space-between; align-items: center;
+  background: linear-gradient(135deg, rgba(212, 168, 83, 0.1), transparent);
+}
+.modal-title { font-size: 1.2rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 8px; }
+.modal-close {
+  background: transparent; border: none; color: var(--text-secondary);
+  font-size: 1.5rem; cursor: pointer; transition: all 0.3s;
+}
+.modal-close:hover { color: var(--danger); transform: rotate(90deg); }
+.modal-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
+.modal-footer {
+  padding: 1rem 1.5rem; border-top: 1px solid var(--border-color);
+  display: flex; justify-content: flex-end; gap: 0.6rem;
+}
+
+/* Form */
+.form-group { margin-bottom: 1rem; }
+.form-label { display: block; margin-bottom: 0.4rem; color: var(--text-secondary); font-size: 0.85rem; font-weight: 600; }
+.form-input, .form-textarea {
+  width: 100%; padding: 0.7rem 1rem; background: var(--bg-input);
+  border: 1px solid var(--border-color); border-radius: 8px;
+  color: var(--text-main); font-size: 0.9rem; outline: none;
+  transition: all 0.3s; font-family: inherit;
+}
+.form-input:focus, .form-textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-light); }
+.form-textarea { min-height: 80px; resize: vertical; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+/* Categories Checkboxes */
+.categories-list {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.5rem; max-height: 400px; overflow-y: auto;
+  padding: 0.5rem; background: var(--bg-input); border-radius: 10px;
+}
+.category-checkbox {
+  display: flex; align-items: center; gap: 0.6rem;
+  padding: 0.6rem 0.8rem; background: var(--bg-card);
+  border: 1px solid var(--border-color); border-radius: 8px;
+  cursor: pointer; transition: all 0.2s;
+}
+.category-checkbox:hover { border-color: var(--primary); background: var(--bg-hover); }
+.category-checkbox.checked {
+  border-color: var(--primary); background: var(--primary-light);
+}
+.category-checkbox input { accent-color: var(--primary); cursor: pointer; width: 16px; height: 16px; }
+.category-checkbox-label { font-size: 0.85rem; font-weight: 500; }
+
+/* Tables */
+.table-wrapper { width: 100%; overflow-x: auto; border-radius: 10px; }
+.data-table {
+  width: 100%; border-collapse: separate; border-spacing: 0;
+  text-align: right; font-size: 0.88rem;
+}
+.data-table th {
+  padding: 0.8rem; color: var(--text-secondary); font-weight: 600;
+  background: var(--bg-hover); border-bottom: 2px solid var(--border-color);
+  white-space: nowrap; position: sticky; top: 0; z-index: 5;
+}
+.data-table td {
+  padding: 0.7rem 0.8rem; border-bottom: 1px solid var(--border-color);
+  transition: all 0.2s;
+}
+.data-table tr:hover td { background: var(--primary-light); }
+.data-table input[type="number"] {
+  width: 80px; padding: 0.4rem; background: var(--bg-input);
+  border: 1px solid var(--border-color); border-radius: 6px;
+  color: var(--text-main); text-align: center; font-family: inherit;
+}
+.data-table input[type="number"]:focus { border-color: var(--primary); outline: none; }
+
+/* Badges */
+.badge {
+  padding: 0.25rem 0.7rem; border-radius: 20px;
+  font-size: 0.75rem; font-weight: 600; display: inline-flex;
+  align-items: center; gap: 4px;
+}
+.badge-success { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+.badge-warning { background: rgba(245, 158, 11, 0.15); color: var(--warning); }
+.badge-danger { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+.badge-info { background: rgba(59, 130, 246, 0.15); color: var(--info); }
+.badge-primary { background: var(--primary-light); color: var(--primary); border: 1px solid rgba(212, 168, 83, 0.3); }
+
+/* Progress Bar */
+.progress-bar {
+  width: 100%; height: 8px; background: var(--bg-dark);
+  border-radius: 4px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 4px; transition: width 0.5s;
+  background: linear-gradient(90deg, var(--primary), var(--primary-hover));
+}
+.progress-fill.success { background: linear-gradient(90deg, var(--success), #059669); }
+.progress-fill.warning { background: linear-gradient(90deg, var(--warning), #d97706); }
+.progress-fill.danger { background: linear-gradient(90deg, var(--danger), #dc2626); }
+
+/* Wizard Steps */
+.wizard-steps {
+  display: flex; justify-content: space-between; margin-bottom: 1.5rem;
+  padding: 1rem; background: var(--bg-input); border-radius: 10px;
+}
+.wizard-step {
+  flex: 1; text-align: center; position: relative; padding: 0.5rem;
+  color: var(--text-secondary); font-weight: 600; font-size: 0.85rem;
+}
+.wizard-step.active { color: var(--primary); }
+.wizard-step.completed { color: var(--success); }
+.wizard-step-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--bg-card); border: 2px solid var(--border-color);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 0.4rem; font-weight: 700;
+}
+.wizard-step.active .wizard-step-num { background: var(--primary); color: #fff; border-color: var(--primary); }
+.wizard-step.completed .wizard-step-num { background: var(--success); color: #fff; border-color: var(--success); }
+
+/* Toast */
+.toast-container {
+  position: fixed; top: 20px; left: 20px; z-index: 8000;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.toast {
+  background: var(--bg-card); border-right: 4px solid var(--primary);
+  border-radius: 8px; padding: 0.9rem 1.3rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+  display: flex; align-items: center; gap: 10px;
+  animation: slideIn 0.3s; min-width: 280px;
+}
+@keyframes slideIn { from { transform: translateX(-100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* Order Card */
+.order-card {
+  background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 12px; padding: 1rem; margin-bottom: 0.8rem;
+  transition: all 0.3s; cursor: pointer;
+}
+.order-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+.order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem; }
+.order-id { font-weight: 700; color: var(--primary); }
+.order-meta { display: flex; gap: 1rem; flex-wrap: wrap; font-size: 0.8rem; color: var(--text-secondary); }
+.order-progress { margin-top: 0.5rem; }
+
+/* Allocation Group */
+.allocation-group {
+  background: var(--bg-input); border: 1px solid var(--border-color);
+  border-radius: 10px; padding: 1rem; margin-bottom: 1rem;
+}
+.allocation-group-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 0.8rem; padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border-color);
+}
+.allocation-group-title { font-weight: 700; color: var(--primary); }
+.allocation-summary {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.8rem;
+  margin-top: 0.8rem; padding: 0.8rem; background: var(--bg-card); border-radius: 8px;
+}
+.allocation-summary-item { text-align: center; }
+.allocation-summary-label { font-size: 0.75rem; color: var(--text-secondary); }
+.allocation-summary-value { font-size: 1.1rem; font-weight: 700; margin-top: 0.2rem; }
+
+/* Reports */
+.report-buttons {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem; margin-bottom: 1.5rem;
+}
+.report-btn {
+  padding: 1.5rem; background: var(--bg-card); border: 1px solid var(--border-color);
+  border-radius: 12px; cursor: pointer; transition: all 0.3s;
+  text-align: center; color: var(--text-main);
+}
+.report-btn:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: var(--shadow-gold); }
+.report-btn i { font-size: 2rem; color: var(--primary); margin-bottom: 0.5rem; display: block; }
+.report-btn-title { font-weight: 700; font-size: 1rem; }
+.report-btn-desc { font-size: 0.8rem; color: var(--text-secondary); margin-top: 0.3rem; }
+
+/* Empty State */
+.empty-state {
+  text-align: center; padding: 3rem 1rem; color: var(--text-secondary);
+}
+.empty-state i { font-size: 4rem; color: var(--border-color); margin-bottom: 1rem; }
+.empty-state-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .container { padding: 1rem; }
+  .form-row { grid-template-columns: 1fr; }
+  .allocation-summary { grid-template-columns: repeat(2, 1fr); }
+  .header { padding: 1rem; }
+  .header-title h1 { font-size: 1.1rem; }
+}
+
+/* Print */
+@media print {
+  .header, .tabs-row, .btn, .search-bar, .filters-row, .modal-overlay, .toast-container { display: none !important; }
+  body { background: white !important; color: black !important; }
+  .card { border: 1px solid #ddd !important; background: white !important; color: black !important; }
+}
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loadingText">جاري التحميل...</div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-content">
+    <div class="logo-icon"><i class="fas fa-truck-loading"></i></div>
+    <div class="header-title">
+      <h1>نظام أوردرات الموردين</h1>
+      <p>إدارة متكاملة للمجموعات والطلبات</p>
+    </div>
+  </div>
+  <div class="btn-group">
+    <button class="btn btn-success" onclick="document.getElementById('fileInput').click()">
+      <i class="fas fa-file-import"></i> استيراد Excel
+    </button>
+    <input type="file" id="fileInput" accept=".xlsx,.xls" style="display:none" onchange="handleImport(event)">
+    <button class="btn btn-info" onclick="exportToPDF()"><i class="fas fa-file-pdf"></i> PDF</button>
+    <button class="btn btn-primary" onclick="exportToExcel()"><i class="fas fa-file-excel"></i> Excel</button>
+    <button class="btn btn-secondary" onclick="backupData()"><i class="fas fa-download"></i> نسخة احتياطية</button>
+    <button class="btn btn-secondary" onclick="document.getElementById('restoreInput').click()">
+      <i class="fas fa-upload"></i> استعادة
+    </button>
+    <input type="file" id="restoreInput" accept=".json" style="display:none" onchange="restoreData(event)">
+  </div>
+</div>
+
+<div class="container">
+  <!-- Stats -->
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <!-- Tabs -->
+  <div class="tabs-row">
+    <button class="tab-btn active" onclick="switchTab('dashboard', this)"><i class="fas fa-chart-pie"></i> لوحة التحكم</button>
+    <button class="tab-btn" onclick="switchTab('suppliers', this)"><i class="fas fa-users"></i> المورّدون</button>
+    <button class="tab-btn" onclick="switchTab('orders', this)"><i class="fas fa-clipboard-list"></i> الأوردرات</button>
+    <button class="tab-btn" onclick="switchTab('tracking', this)"><i class="fas fa-tasks"></i> متابعة الإنجاز</button>
+    <button class="tab-btn" onclick="switchTab('categories', this)"><i class="fas fa-layer-group"></i> المجموعات</button>
+    <button class="tab-btn" onclick="switchTab('reports', this)"><i class="fas fa-file-alt"></i> التقارير</button>
+    <button class="tab-btn" onclick="switchTab('settings', this)"><i class="fas fa-cog"></i> الإعدادات</button>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="dashboardTab" class="tab-content active">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-chart-line"></i> نظرة عامة</h3>
+      </div>
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+        <div>
+          <h4 style="color:var(--primary); margin-bottom:1rem;">توزيع الأوردرات</h4>
+          <div style="height: 300px;"><canvas id="ordersChart"></canvas></div>
+        </div>
+        <div>
+          <h4 style="color:var(--primary); margin-bottom:1rem;">أداء الموردين</h4>
+          <div style="height: 300px;"><canvas id="suppliersChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-clock"></i> آخر الأوردرات</h3>
+      </div>
+      <div id="recentOrders"></div>
+    </div>
+  </div>
+
+  <!-- Suppliers -->
+  <div id="suppliersTab" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-users"></i> بطاقات الموردين</h3>
+        <div style="display:flex; gap:0.6rem; flex-wrap:wrap; flex:1; justify-content:flex-end;">
+          <div class="search-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" id="supplierSearch" placeholder="بحث بالاسم، الجوال، المجموعات..." oninput="renderSuppliers()">
+          </div>
+          <button class="btn btn-primary" onclick="openSupplierModal()"><i class="fas fa-plus"></i> مورد جديد</button>
+        </div>
+      </div>
+      <div class="filters-row">
+        <select class="filter-select" id="supplierStatusFilter" onchange="renderSuppliers()">
+          <option value="">كل الحالات</option>
+          <option value="active">نشط</option>
+          <option value="inactive">غير نشط</option>
+        </select>
+        <select class="filter-select" id="supplierCategoryFilter" onchange="renderSuppliers()">
+          <option value="">كل المجموعات</option>
+        </select>
+        <button class="btn btn-sm btn-secondary" onclick="resetSupplierFilters()"><i class="fas fa-undo"></i> إعادة تعيين</button>
+      </div>
+      <div class="suppliers-grid" id="suppliersGrid"></div>
+    </div>
+  </div>
+
+  <!-- Orders -->
+  <div id="ordersTab" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-clipboard-list"></i> الأوردرات</h3>
+        <div style="display:flex; gap:0.6rem; flex-wrap:wrap; flex:1; justify-content:flex-end;">
+          <div class="search-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" class="search-input" id="orderSearch" placeholder="بحث برقم الأمر أو المورد..." oninput="renderOrders()">
+          </div>
+          <button class="btn btn-primary" onclick="openOrderWizard()"><i class="fas fa-plus"></i> أمر جديد</button>
+        </div>
+      </div>
+      <div class="filters-row">
+        <select class="filter-select" id="orderStatusFilter" onchange="renderOrders()">
+          <option value="">كل الحالات</option>
+          <option value="draft">مسودة</option>
+          <option value="pending">قيد الانتظار</option>
+          <option value="confirmed">مؤكد</option>
+          <option value="delivered">تم التسليم</option>
+          <option value="cancelled">ملغي</option>
+        </select>
+        <select class="filter-select" id="orderSupplierFilter" onchange="renderOrders()">
+          <option value="">كل الموردين</option>
+        </select>
+        <button class="btn btn-sm btn-secondary" onclick="resetOrderFilters()"><i class="fas fa-undo"></i> إعادة تعيين</button>
+      </div>
+      <div id="ordersList"></div>
+    </div>
+  </div>
+
+  <!-- Tracking -->
+  <div id="trackingTab" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-tasks"></i> متابعة الإنجاز</h3>
+        <div class="search-bar" style="max-width:400px;">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" class="search-input" id="trackingSearch" placeholder="بحث بالمورد..." oninput="renderTracking()">
+        </div>
+      </div>
+      <div id="trackingContent"></div>
+    </div>
+  </div>
+
+  <!-- Categories -->
+  <div id="categoriesTab" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-layer-group"></i> هيكل المجموعات</h3>
+        <div class="search-bar" style="max-width:400px;">
+          <i class="fas fa-search search-icon"></i>
+          <input type="text" class="search-input" id="categorySearch" placeholder="بحث في المجموعات..." oninput="renderCategories()">
+        </div>
+      </div>
+      <div id="categoriesContent"></div>
+    </div>
+  </div>
+
+  <!-- Reports -->
+  <div id="reportsTab" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-file-alt"></i> التقارير</h3>
+      </div>
+      <div class="report-buttons">
+        <div class="report-btn" onclick="showReport('suppliers')">
+          <i class="fas fa-users"></i>
+          <div class="report-btn-title">تقرير الموردين</div>
+          <div class="report-btn-desc">إحصائيات شاملة لكل مورد</div>
+        </div>
+        <div class="report-btn" onclick="showReport('orders')">
+          <i class="fas fa-clipboard-list"></i>
+          <div class="report-btn-title">تقرير الأوردرات</div>
+          <div class="report-btn-desc">كل الأوردرات وحالاتها</div>
+        </div>
+        <div class="report-btn" onclick="showReport('categories')">
+          <i class="fas fa-layer-group"></i>
+          <div class="report-btn-title">تقرير المجموعات</div>
+          <div class="report-btn-desc">أداء المجموعات الرئيسية</div>
+        </div>
+        <div class="report-btn" onclick="showReport('shortage')">
+          <i class="fas fa-exclamation-triangle"></i>
+          <div class="report-btn-title">تقرير العجز</div>
+          <div class="report-btn-desc">الأصناف التي بها عجز</div>
+        </div>
+      </div>
+      <div id="reportContent"></div>
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div id="settingsTab" class="tab-content">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title"><i class="fas fa-cog"></i> الإعدادات</h3>
+      </div>
+      <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:1rem;">
+        <button class="report-btn" onclick="backupData()">
+          <i class="fas fa-download"></i>
+          <div class="report-btn-title">تصدير نسخة احتياطية</div>
+          <div class="report-btn-desc">حفظ كل البيانات كملف JSON</div>
+        </button>
+        <button class="report-btn" onclick="document.getElementById('restoreInput').click()">
+          <i class="fas fa-upload"></i>
+          <div class="report-btn-title">استعادة البيانات</div>
+          <div class="report-btn-desc">استيراد نسخة احتياطية</div>
+        </button>
+        <button class="report-btn" onclick="loadSampleData()">
+          <i class="fas fa-database"></i>
+          <div class="report-btn-title">تحميل بيانات تجريبية</div>
+          <div class="report-btn-desc">إضافة موردين وأوردرات نموذجية</div>
+        </button>
+        <button class="report-btn" onclick="clearAllData()">
+          <i class="fas fa-trash"></i>
+          <div class="report-btn-title">حذف جميع البيانات</div>
+          <div class="report-btn-desc">مسح كل البيانات نهائياً</div>
+        </button>
+      </div>
+      <div style="margin-top:2rem; padding:1rem; background:var(--bg-input); border-radius:10px;">
+        <h4 style="color:var(--primary); margin-bottom:0.8rem;">معلومات النظام</h4>
+        <p style="font-size:0.85rem; color:var(--text-secondary); line-height:2;">
+          • الإصدار: 2.0.0<br>
+          • عدد المجموعات الرئيسية: <span id="infoMainCats">0</span><br>
+          • عدد المجموعات الفرعية: <span id="infoSubCats">0</span><br>
+          • عدد الموردين: <span id="infoSuppliers">0</span><br>
+          • عدد الأوردرات: <span id="infoOrders">0</span><br>
+          • آخر حفظ: <span id="infoLastSave">-</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Supplier Modal -->
+<div class="modal-overlay" id="supplierModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-user-tie"></i> <span id="supplierModalTitle">إضافة مورد</span></h3>
+      <button class="modal-close" onclick="closeModal('supplierModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="supplierId">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">اسم المورد *</label>
+          <input type="text" class="form-input" id="supplierName" placeholder="مثال: مصنع الجودة">
+        </div>
+        <div class="form-group">
+          <label class="form-label">رقم الجوال</label>
+          <input type="text" class="form-input" id="supplierContact" placeholder="05xxxxxxxx">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">البريد الإلكتروني</label>
+          <input type="email" class="form-input" id="supplierEmail" placeholder="example@mail.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label">الحالة</label>
+          <select class="form-input" id="supplierStatus">
+            <option value="active">نشط</option>
+            <option value="inactive">غير نشط</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">العنوان</label>
+        <input type="text" class="form-input" id="supplierAddress" placeholder="المدينة - الحي">
+      </div>
+      <div class="form-group">
+        <label class="form-label">ملاحظات</label>
+        <textarea class="form-textarea" id="supplierNotes" placeholder="ملاحظات إضافية..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('supplierModal')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSupplier()"><i class="fas fa-save"></i> حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Categories Assignment Modal -->
+<div class="modal-overlay" id="categoriesModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-layer-group"></i> تخصيص المجموعات الرئيسية</h3>
+      <button class="modal-close" onclick="closeModal('categoriesModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <div>
+          <strong id="catModalSupplierName" style="color:var(--primary); font-size:1.1rem;"></strong>
+          <p style="color:var(--text-secondary); font-size:0.85rem;">اختر المجموعات الرئيسية التي يتعامل معها هذا المورد</p>
+        </div>
+        <div>
+          <button class="btn btn-sm btn-secondary" onclick="selectAllCategories(true)">تحديد الكل</button>
+          <button class="btn btn-sm btn-secondary" onclick="selectAllCategories(false)">إلغاء الكل</button>
+        </div>
+      </div>
+      <div class="search-bar" style="max-width:100%; margin-bottom:1rem;">
+        <i class="fas fa-search search-icon"></i>
+        <input type="text" class="search-input" id="categoryModalSearch" placeholder="بحث في المجموعات..." oninput="filterCategoriesModal()">
+      </div>
+      <div class="categories-list" id="categoriesCheckboxes"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('categoriesModal')">إلغاء</button>
+      <button class="btn btn-primary" onclick="saveSupplierCategories()"><i class="fas fa-save"></i> حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Wizard Modal -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-clipboard-list"></i> <span id="orderModalTitle">أمر جديد</span></h3>
+      <button class="modal-close" onclick="closeModal('orderModal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="wizard-steps">
+        <div class="wizard-step active" id="step1">
+          <div class="wizard-step-num">1</div>
+          <div>اختيار المورد</div>
+        </div>
+        <div class="wizard-step" id="step2">
+          <div class="wizard-step-num">2</div>
+          <div>اختيار المجموعات</div>
+        </div>
+        <div class="wizard-step" id="step3">
+          <div class="wizard-step-num">3</div>
+          <div>إدخال الكميات</div>
+        </div>
+        <div class="wizard-step" id="step4">
+          <div class="wizard-step-num">4</div>
+          <div>المراجعة والحفظ</div>
+        </div>
+      </div>
+
+      <!-- Step 1: Choose Supplier -->
+      <div id="wizardStep1">
+        <div class="form-group">
+          <label class="form-label">اختر المورد *</label>
+          <div style="position:relative;">
+            <input type="text" class="form-input" id="orderSupplierSearch" placeholder="اكتب اسم المورد..." oninput="filterOrderSuppliers()" autocomplete="off">
+            <div id="orderSupplierList" style="position:absolute; top:100%; right:0; left:0; background:var(--bg-card); border:1px solid var(--border-color); border-radius:8px; max-height:250px; overflow-y:auto; z-index:100; display:none;"></div>
+          </div>
+          <input type="hidden" id="orderSupplierId">
+          <div id="selectedSupplierInfo" style="margin-top:0.8rem;"></div>
+        </div>
+      </div>
+
+      <!-- Step 2: Choose Categories -->
+      <div id="wizardStep2" style="display:none;">
+        <p style="color:var(--text-secondary); margin-bottom:1rem;">اختر المجموعات الرئيسية لهذا الأمر (من المجموعات المخصصة للمورد):</p>
+        <div class="categories-list" id="orderCategoriesList"></div>
+      </div>
+
+      <!-- Step 3: Enter Quantities -->
+      <div id="wizardStep3" style="display:none;">
+        <div id="allocationGroups"></div>
+      </div>
+
+      <!-- Step 4: Review -->
+      <div id="wizardStep4" style="display:none;">
+        <div id="orderReview"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" id="wizardPrevBtn" onclick="wizardPrev()" style="display:none;"><i class="fas fa-arrow-right"></i> السابق</button>
+      <button class="btn btn-primary" id="wizardNextBtn" onclick="wizardNext()">التالي <i class="fas fa-arrow-left"></i></button>
+      <button class="btn btn-success" id="wizardSaveBtn" onclick="saveOrder()" style="display:none;"><i class="fas fa-save"></i> حفظ الأمر</button>
+    </div>
+  </div>
+</div>
+
+<!-- Order Details Modal -->
+<div class="modal-overlay" id="orderDetailsModal">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h3 class="modal-title"><i class="fas fa-file-invoice"></i> تفاصيل الأمر</h3>
+      <button class="modal-close" onclick="closeModal('orderDetailsModal')">&times;</button>
+    </div>
+    <div class="modal-body" id="orderDetailsContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('orderDetailsModal')">إغلاق</button>
+      <button class="btn btn-info" onclick="printOrderDetails()"><i class="fas fa-print"></i> طباعة</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================
+// DEFAULT DATA - 21 Main Categories + Subcategories
+// ============================================
+const DEFAULT_CATEGORIES = [
+  { id: "001", name: "ملحقات المنزل - قطاعي", subs: ["فرش مرحاض","رولات","علب غاز","مرابط بلاستيك","اكياس تخزين","ستاره","سدادة","مكيال","سلالم منزلي","سلة رحلات","شبشب","شنطة ترامس","شيال","استاند","صندوق تخزين","ممسحة ارضيات","طرمبه","قفازات","طاولة كوي","عازل ابواب","علاق ملابس دولاب","علبة تخزين","علبة تغليف","علبة توزيعات","جرس","مستلزمات قطط","سفر طاولة","موب","غطاء","فحم","حطب","ميزان","فرشه تنظيف","فلتر","اوعية بلاستيك ورقيه","جاروف","كرسي","كيس ماء","رف جدار","رول تنظيف ملابس","مظلات","تراب قطط","مساحة ارضيه","مساحة زجاج","شبك غسيل","مضرب ذباب","حافظات","مفرش","مكنسه","مناشف متعددة الاستخدام","منشر غسيل","منفاخ","منخل","اكياس عصير","ريش غبار","طاولة","ديكور","حبال","اكسسوارات حمام","سطل استيل","جركل بلاستيك","رضاعات","ورق جدران","قاعدة","سلة غسيل ملابس","مساحات","بانيو اطفال","مغراف","عصا","اكياس غسيل ملابس","متاكي","اكياس تسوق","حاجز باب","محقان","اكياس تخزين الكيك","عربة نظافة","تمريه","صبانة","صطرية اطفال","حماية اثاث","شطافات","طاولة تقديم","فرو","بخاخ مرش","صندوق حلويات","ابريق وضوء","اطار صور","علبة فشار","علاق ملابس جدار","دعاسات","برواز مكيف","كاميرا مراقبه","مضخة ماء ضغاط","موقد","رول دواليب","دولاب","علب مناديل","تلبيسة","محك ظهر","وعاء طعام قطط"] },
+  { id: "002", name: "ملحقات المطبخ - قطاعي", subs: ["برطمان زجاج","مفك علب","ساطور","هراسة ثوم","عصارة ليمون","ملعقة ايسكريم","فرش زيت","مصفى استيل","شبك شوي","قوالب كيك معمول","عدة حلا","قطاعة بيض","سلك مواعين","قالب سمبوسة","سكاكين","مضرب حديد","قطاعة عجين","مبشرة","مطرقة لحم","ولاعات","نجر","صحون كيك","مقالي تيفال","قفازات","مقالي المنيوم","قدور","برطمان استيل","قماش عازل حراري","مناشف مطبخ","مريلة","مسن سكاكين","خباط","قطاعة","صفاية مغاسل","مزيتة","مقصات","سيخ شوي","استاند صحون","صواني بايركس","ماكس رول","صحون سفري","علب حديد","فلترات","كماليات مطبخ","حافظات طعام","ملاعق طبخ استيل","ملاحة","ابريق","ابريق اسبريسو","بيز مطبخ","حفارة خضار","دلة","ركوة","سخان","ملاعق طبخ سيلكون","صاج","لفافة ورق عنب","قمع معجنات","لوح تقطيع","مجفف خضار","ملقاط","ضغاط طعام","علب كاتشب","مقشرة","خلاط طعام","ملاعق طبخ خشب","فرادة","رف ثلاجه","منخل","علب بهارات","قالب","علب حلويات","استاند ملاعق","منظم صحون","صواني","اكياس شواء","سلة فواكة","حافظات بايركس","اكياس شاي","ورق دانتيل","اعواد شواء","نشافه خضار","ملاعق مقادير","قاعدة غاز","استاند اكواب","اكواب زجاج","شبك قلي","طقم مطبخ","فخار","مسدس غاز","قطارة قهوة","مبرد سكاكين","مفرش عجين","اكياس تزيين حلا","صحون بايركس"] },
+  { id: "003", name: "المنظفات - قطاعي", subs: ["سائل يدين","مطهر ومعقم عام","مزيل شامل","معطر ومنعم ملابس","سائل غسيل ملابس","ملمع اثاث","نفتالين","ليف غسيل","اسفنجيات","معقم بخاخ","مبيد حشرات","سائل صحون","كبسولات غسيل","لمامة تنظيف","طرمبة حمام","فرش تنظيف","كمامات","شامبو عبايات","شامبو سجاد","معجون صحون","نشاء كوي","مبيض ملابس","معطر عام","مسلك مجاري","مطهر اسطح","فنش","ملح غساله","منظف افران","معطر شديد التركيز","معطر مفارش","اقراص غسالة","جل ارضيات","جل ملابس","كلور","فلاش","روائح حمام","منظف غسالة صحون","ملمع استيل","معطر ارضيات","مزيل كهرباء","ملمع سيارات","منظف مكواة","منظف سجاد","منظف مطبخ","مسحوق غسيل","شامبو ملابس","منظف ارضيات","منظف مرحاض","ملمع زجاج"] },
+  { id: "004", name: "ادوات تجميل - قطاعي", subs: ["مزيل مناكير","احمر خدود","كريم اساس","خافي عيوب","بودرة وجه","مناكير","كحل سائل","مرايات","مبرد اظافر","اضائة","قلم حواجب","رموش","كحل قلم","اسفنج مكياج","فرش مكياج","مناديل مزيل مكياج","ملقاط شعر","حنا","مكياج","مرطب شفائف","موس حواجب","طاقية شعر","غراء رموش","مصحح حواجب","قلم شفايف","فرش تنظيف بشرة","محك قدم","اظافر","غراء اظافر","مثبت مكياج","مسكرة","روج","ظل عيون"] },
+  { id: "005", name: "بلاستيكات - قطاعي", subs: ["رفوف بلاستيك","مرش زراعي","صحون بلاستيك","كاسات بلاستيك","طقم اكواب بلاستيك","مصاصات","برطمان بلاستيك","عصارة يدوي","قوالب ثلج","علب ايسكريم","تمريه بلاستيك","سطول زبالة","ملاعق بلاستيك","شوك اكل بلاستيك","علب صابون بلاستيك","مكيال طعام","بانيو بلاستيك","طشت بلاستيك","سطل بلاستيك","بخاخ ماء","جلدية","سلة نفايات","كراسي بلاستيك","علب كرافت","علب عصير بلاستيك","جركل بلاستيك","علب بخاخ","علب فشار","ملاعق اكل بلاستيك","جزامة بلاستيك","طاولة بلاستيك","ابريق حمام","صندوق بلاستيك","حافظات بلاستيك","مغراف","حامل مناديل بلاستيك","قدور المنيوم","سلة غسيل بلاستيك","سلة تنظيم","مصفى بلاستيك","جاك بلاستيك","علب بلاستيك"] },
+  { id: "006", name: "اكسسوارات - قطاعي", subs: ["بنسات","دبابيس","حلق اذان","بروش","صحن صبغة","اعواد شمع","قطن مكياج","مساج شعر","اكسسوارات","مشط","فرشة شعر","شباصات","طوق شعر","ربطات شعر","سبح ومحافظ وخواتم","نظارات"] },
+  { id: "007", name: "القرطاسية - قطاعي", subs: ["مطارات","صلصال","ملفات","الة حاسبة","مقلمية","ادوات مكتبية","شنط مدرسية","لوحات","كراسات","تجليد","غراء","حصالات","استيكرات","فنية","حافظات مدرسيه","طاولة مدرسيه","هندسة","كرت تعليمي","سبورة","محاية","براية","دباسة","عجينة سيراميك","مساطر","طباشير","فلين","فرش رسم","مشبك ورق","كانفس","الوان","لاصق","دفتر","طوابع","ورق","اقلام"] },
+  { id: "008", name: "مفروشات - قطاعي", subs: ["لباد","مخدات","مسند","سجاد","كرسي فرو","بطانية","تلبيس مخدة","فرش","طراحه"] },
+  { id: "009", name: "كهربائيات وخردوات - قطاعي", subs: ["مستلزمات الدواليب","خردوات","طقم عدة","ملحقات جوال","غلاية وعصارة كهرباء","بطاريات","شطرطون","مراوح","مستلزمات الاثاث","مستلزمات الابواب","مستلزمات الاحذية","مستلزمات الخياطة","ادوات سباكة","ادوات كهرباء","شنطة رحلات","مستلزمات مطبخ"] },
+  { id: "010", name: "سفر واكياس بلاستيكية - قطاعي", subs: ["سفر طعام بلاستيك","اكياس تغليف","قفازات بلاستيك","اكياس شبكية","سفر قماش","سفر بالمتر","اكياس نفايات رول","اكياس نفايات بربطة","اكياس نفايات معطرة","اكياس حفظ الطعام","اكياس لحم","اكياس علاقي"] },
+  { id: "011", name: "العاب - قطاعي", subs: ["نظارات","كرت سباكة","كرت شعر","كرت مكياج","دباديب كبيرة","دباديب صغيرة","كرة قدم","كرة سلة","العاب منوعه","العاب تعليمية","مسدس كرت","مكعبات","العاب ذكاء","العاب مسبح","هيلا هوب","العاب رمل","كرت طائرة","مجسمات","مسدس صابون","مسدس ماء","كرت سيارة","كرت عرائس","كرت مطبخ","كرت دكتور"] },
+  { id: "012", name: "ملابس - قطاعي", subs: ["جوارب","ملمع احذية","ملابس واقي مطر","شنط شخصية","مناشف جسم","مستلزمات رياضية","اكياس ملابس","سحاب ملابس","فنايل وتشيرات","ملابس داخلية","احذية","حقيبة ملابس","كاب","وشاح","شال","حزام"] },
+  { id: "013", name: "العطور - قطاعي", subs: ["عطر","معطر جسم","معطر شعر","معطر جو","عطور شرقية","كلونيا","بخور","معطر سيارات"] },
+  { id: "014", name: "العناية بالبشره والجسم - قطاعي", subs: ["غسيل وجه","معجون اسنان","صابون قوالب","بودرة جسم","جل استحمام","كريم شعر","جل شعر","كريم مرطب","قناع وجه","صنفرة وجه","زيت شعر","شامبو شعر","مبرد ارجل","مقص اظافر","مستلزمات طبيه","شفرات حلاقه","شفرات حلاقه نسائي","مزيل عرق","مزيل شعر","ماء الورد","مزيل مكياج","جلي مرطب","لوشن جسم","حمام زيت","كريمات مرطبة","حلاوة طبيعية","غطا راس","مقص","لصق ظهر","فوط نسائي","غسول فم","صبغات شعر","زيت جسم","بلسم شعر","شاور جل","غسول جسم","مقشرات","قطن","كريم حلاقة","غسول يدين","مناشف صحية","مبرد قدم","مخمرية","فرشة اسنان","اعواد اذان","اعواد اسنان","ليف جسم"] },
+  { id: "015", name: "الحفلات والمناسبات - قطاعي", subs: ["بالونات احرف","بخاخ رغوة","قناع تنكر","اعلام وطنية","شنط مناسبات","توزيعات عيدية","بالونات","بالونات ارقام","منفاخ بالونات","قش هدايا","طقم حفلات","بالونات حفلات","اكياس تقديم مناسبات","زينة حفلات"] },
+  { id: "016", name: "المواد الغذائية والحلويات - قطاعي", subs: ["تمر","عصائر ومرطبات","كيك","زبدة","قهوة","شطة وصوص","حلاوة مصاص","ويفر","مكملات طبخ","حلويات","سكر","حليب","شاي","منتجات مجمدة","اناناس","اكل قطط","معمول","معلبات بقوليات","دقيق","معجون طماطم","كورن فليكس","كوكيز","بسكويت","خبز وفطائر","مقرمشات","عسل","مكرونة","زيت","تونة","قشطة","مارشميلو","توفي","شابورة","مكسرات","حلاوة طحينية","مربى","مخللات","مسحوق كاسترد وحلا","رز","ماجي دجاج","ملح طعام","اندومي","ورق عنب","بيض","توابل وبهارات","زيتون","دبس","بودرة كاكاو","شوربة","ذرة","جيلي","لانشون","مايونيز","حامض ليمون","خل","شوكولاتة","حمص","كريمة خفق","اجبان","كرواسان","فشار","نشاء ذرة","بودرة","خليط كيك","عجينة سمبوسة","ايسكريم","شبسات بطاطس","علك لبان"] },
+  { id: "017", name: "مياة - قطاعي", subs: ["مياة"] },
+  { id: "018", name: "مستلزمات رمضانية - قطاعي", subs: ["زينة رمضان","تقديمات رمضانية","اكياس هدايا رمضانية","اغراض رمضانية"] },
+  { id: "019", name: "ورقيات ومناديل - قطاعي", subs: ["اكواب ورقية","ورق قصدير","ورق زبدة","ورق ساندوتش","صحون تقديم ورقية","اكياس ورقية","استاند مناديل","كاب كيك","ورق سفرة","ورق مطبخ","صحون قصدير","صحون ورقية","صناديق فلين","حفائظ اطفال","حفائظ نسائي","اكياس حفظ حرارة","مناديل وجه","مناشف مبلله","فاين","رول مطبخ","رول حمام","مناديل جيب","مناديل مبللة","مناديل سفرة","ماكسي رول"] },
+  { id: "020", name: "التحف والهدايا - قطاعي", subs: ["مراكن تعليق","ورد مجفف","ورد","مباخر","مجسمات","شمعدان","شموع","مركن تحف","احجار زينة","اكياس هدايا","سلل خوص","تعاليق خشبية","علب تعليق","فازات زجاج","اكياس توزيعات","ارضيات باركية","تغليف هدايا","لوحات ديكور","ابجورة","براويز","ساعات","شجر زينة","فازات فخار","صندوق هدايا","فواحة","لوحات جدارية","شمع","سبح ديكور","مسابح","مراكن ورد","فازات سراميك","فوانيس","طقم هدايا","كتب ديكور","تحف","علب عطر","مزهريات","اظرف توزيعات","علب هدايا","منظر ديكور","ميداليات","شموع مضيئة","سطل زراعة","لمبات"] },
+  { id: "021", name: "ملحقات المائدة - قطاعي", subs: ["ملاعق وشوك اكل خشبية","تمريه زجاج","اعواد حلا","تغريسات","كاسات عصير زجاج","صحون زجاج","زبدية المنيوم","صحون المنيوم","طفريات تقديم","صحون سراميك","تقديمات خشبية","تقديمات ذهبية","صحون ملامين","ملاعق اكل استيل","زبدية سراميك","كاسات زجاج","بيالات زجاج","اكواب سراميك","ترامس","قاروة عصير","زبدية ملامين","صحون استيل","ملاعق عسل","كماليات المائدة","جاكات عصير","كاسات ايسكريم","كاسات حراريه","رضاعات","تمريات استيل","كاسات استيل","اعواد تحريك","ملاعق حلا","اكواب استيل","كاسات حلا","شوك حلا","صحون تقديم","صحون حلا","علب ثلج","زبدية استيل","استاند حلا","اكواب زجاج","شبك تقديم","صحون فناجين","اكواب عصير مق","خزف","شوك اكل","طقم سراميك","تمرية اكريلك","فناجين","زبدية زجاج","سكرية زجاج"] }
+];
+
+// ============================================
+// STATE
+// ============================================
+let state = {
+  categories: [],
+  suppliers: [],
+  orders: [],
+  currentWizard: { step: 1, supplierId: null, selectedCategories: [], allocations: {} }
+};
+let db = null;
+let charts = {};
+
+// ============================================
+// IndexedDB
+// ============================================
+async function initDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open('LamsatSuppliersDB', 1);
+    req.onerror = () => reject(req.error);
+    req.onsuccess = () => { db = req.result; resolve(); };
+    req.onupgradeneeded = (e) => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('state')) d.createObjectStore('state');
+    };
+  });
+}
+
+async function saveState() {
+  if (!db) return;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(['state'], 'readwrite');
+      tx.objectStore('state').put(state, 'app');
+      tx.oncomplete = () => {
+        document.getElementById('infoLastSave').textContent = new Date().toLocaleTimeString('ar-SA');
+        resolve();
+      };
+      tx.onerror = () => resolve();
+    } catch (e) { console.error(e); resolve(); }
+  });
+}
+
+async function loadState() {
+  if (!db) return;
+  return new Promise((resolve) => {
+    try {
+      const tx = db.transaction(['state'], 'readonly');
+      const req = tx.objectStore('state').get('app');
+      req.onsuccess = () => {
+        if (req.result) {
+          state = req.result;
+          if (!state.categories || state.categories.length === 0) state.categories = DEFAULT_CATEGORIES;
+          if (!state.suppliers) state.suppliers = [];
+          if (!state.orders) state.orders = [];
+        } else {
+          state.categories = DEFAULT_CATEGORIES;
+          state.suppliers = [];
+          state.orders = [];
+        }
+        resolve();
+      };
+      req.onerror = () => resolve();
+    } catch (e) { resolve(); }
+  });
+}
+
+// ============================================
+// UTILITIES
+// ============================================
+function showToast(msg, type = 'info') {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast';
+  const colors = { success: 'var(--success)', error: 'var(--danger)', info: 'var(--primary)', warning: 'var(--warning)' };
+  const icons = { success: 'check-circle', error: 'times-circle', info: 'info-circle', warning: 'exclamation-circle' };
+  t.style.borderRightColor = colors[type];
+  t.innerHTML = `<i class="fas fa-${icons[type]}" style="color:${colors[type]}; font-size:1.2rem;"></i><span>${msg}</span>`;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+function showLoading(show, text = 'جاري التحميل...') {
+  document.getElementById('loadingText').textContent = text;
+  document.getElementById('loadingOverlay').classList.toggle('active', show);
+}
+
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+function genId(prefix) { return prefix + '-' + Date.now() + '-' + Math.floor(Math.random() * 1000); }
+
+function switchTab(tabId, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(tabId + 'Tab').classList.add('active');
+  btn.classList.add('active');
+  if (tabId === 'dashboard') renderDashboard();
+  else if (tabId === 'suppliers') renderSuppliers();
+  else if (tabId === 'orders') renderOrders();
+  else if (tabId === 'tracking') renderTracking();
+  else if (tabId === 'categories') renderCategories();
+  else if (tabId === 'settings') updateSettingsInfo();
+}
+
+// ============================================
+// STATS
+// ============================================
+function renderStats() {
+  const totalSuppliers = state.suppliers.length;
+  const activeSuppliers = state.suppliers.filter(s => s.status === 'active').length;
+  const totalOrders = state.orders.length;
+  const activeOrders = state.orders.filter(o => o.status !== 'delivered' && o.status !== 'cancelled').length;
+  
+  let totalTarget = 0, totalAllocated = 0;
+  state.orders.forEach(o => {
+    if (o.totals) {
+      totalTarget += o.totals.targetSum || 0;
+      totalAllocated += o.totals.allocatedSum || 0;
+    }
+  });
+  const progress = totalTarget > 0 ? Math.round((totalAllocated / totalTarget) * 100) : 0;
+  const totalShortage = totalTarget - totalAllocated;
+  const totalMainCats = state.categories.length;
+  const totalSubCats = state.categories.reduce((s, c) => s + (c.subs?.length || 0), 0);
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-card">
+      <i class="fas fa-users stat-icon"></i>
+      <div class="stat-label">المورّدون</div>
+      <div class="stat-value">${totalSuppliers}</div>
+      <div class="stat-sub">${activeSuppliers} نشط</div>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-clipboard-list stat-icon"></i>
+      <div class="stat-label">الأوردرات</div>
+      <div class="stat-value">${totalOrders}</div>
+      <div class="stat-sub">${activeOrders} نشط</div>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-bullseye stat-icon"></i>
+      <div class="stat-label">إجمالي المستهدف</div>
+      <div class="stat-value">${totalTarget.toLocaleString()}</div>
+      <div class="stat-sub">عبر كل الأوردرات</div>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-check-circle stat-icon"></i>
+      <div class="stat-label">إجمالي المسجل</div>
+      <div class="stat-value">${totalAllocated.toLocaleString()}</div>
+      <div class="stat-sub">نسبة الإنجاز ${progress}%</div>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-exclamation-triangle stat-icon"></i>
+      <div class="stat-label">إجمالي العجز</div>
+      <div class="stat-value" style="color:${totalShortage > 0 ? 'var(--danger)' : 'var(--success)'}">${totalShortage.toLocaleString()}</div>
+      <div class="stat-sub">${totalShortage > 0 ? 'يحتاج متابعة' : 'مكتمل'}</div>
+    </div>
+    <div class="stat-card">
+      <i class="fas fa-layer-group stat-icon"></i>
+      <div class="stat-label">المجموعات</div>
+      <div class="stat-value">${totalMainCats}</div>
+      <div class="stat-sub">${totalSubCats} مجموعة فرعية</div>
+    </div>
+  `;
+}
+
+// ============================================
+// SUPPLIERS
+// ============================================
+function renderSuppliers() {
+  const search = (document.getElementById('supplierSearch')?.value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('supplierStatusFilter')?.value || '';
+  const catFilter = document.getElementById('supplierCategoryFilter')?.value || '';
+  
+  let filtered = state.suppliers.filter(s => {
+    if (statusFilter && s.status !== statusFilter) return false;
+    if (catFilter && !(s.assignedCategories || []).includes(catFilter)) return false;
+    if (search) {
+      const hay = (s.name + ' ' + s.contact + ' ' + s.email + ' ' + (s.address || '')).toLowerCase();
+      const catNames = (s.assignedCategories || []).map(id => {
+        const c = state.categories.find(x => x.id === id);
+        return c ? c.name : '';
+      }).join(' ').toLowerCase();
+      if (!hay.includes(search) && !catNames.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const grid = document.getElementById('suppliersGrid');
+  if (filtered.length === 0) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><i class="fas fa-users-slash"></i><div class="empty-state-title">لا يوجد مورّدون</div><div>اضغط "مورد جديد" لإضافة أول مورد</div></div>`;
+    return;
+  }
+
+  grid.innerHTML = filtered.map(s => {
+    const ordersCount = state.orders.filter(o => o.supplierId === s.id).length;
+    const activeOrders = state.orders.filter(o => o.supplierId === s.id && o.status !== 'delivered' && o.status !== 'cancelled').length;
+    const assignedCats = (s.assignedCategories || []).map(id => state.categories.find(c => c.id === id)).filter(Boolean);
+    const initial = (s.name || '?').charAt(0);
+    
+    return `
+      <div class="supplier-card">
+        <div class="supplier-header">
+          <div class="supplier-avatar">${initial}</div>
+          <div class="supplier-info">
+            <div class="supplier-name">${s.name}</div>
+            <div class="supplier-contact"><i class="fas fa-phone"></i> ${s.contact || 'غير محدد'}</div>
+          </div>
+          <span class="supplier-status ${s.status === 'active' ? 'status-active' : 'status-inactive'}">
+            ${s.status === 'active' ? 'نشط' : 'غير نشط'}
+          </span>
+        </div>
+        <div class="supplier-stats">
+          <div class="supplier-stat">
+            <div class="supplier-stat-label">المجموعات</div>
+            <div class="supplier-stat-value">${assignedCats.length}</div>
+          </div>
+          <div class="supplier-stat">
+            <div class="supplier-stat-label">الأوردرات</div>
+            <div class="supplier-stat-value">${ordersCount}</div>
+          </div>
+        </div>
+        <div class="supplier-categories">
+          ${assignedCats.slice(0, 5).map(c => `<span class="category-chip">${c.name}</span>`).join('')}
+          ${assignedCats.length > 5 ? `<span class="category-chip">+${assignedCats.length - 5}</span>` : ''}
+        </div>
+        <div class="supplier-actions">
+          <button class="btn btn-sm btn-primary" onclick="openOrderWizard('${s.id}')"><i class="fas fa-plus"></i> أمر جديد</button>
+          <button class="btn btn-sm btn-secondary" onclick="openCategoriesModal('${s.id}')"><i class="fas fa-layer-group"></i> المجموعات</button>
+          <button class="btn btn-sm btn-secondary" onclick="editSupplier('${s.id}')"><i class="fas fa-edit"></i></button>
+          <button class="btn btn-sm btn-danger" onclick="deleteSupplier('${s.id}')"><i class="fas fa-trash"></i></button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function populateSupplierCategoryFilter() {
+  const sel = document.getElementById('supplierCategoryFilter');
+  sel.innerHTML = '<option value="">كل المجموعات</option>' + 
+    state.categories.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+  
+  const orderSel = document.getElementById('orderSupplierFilter');
+  orderSel.innerHTML = '<option value="">كل الموردين</option>' + 
+    state.suppliers.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+function openSupplierModal(id = null) {
+  document.getElementById('supplierId').value = id || '';
+  document.getElementById('supplierModalTitle').textContent = id ? 'تعديل مورد' : 'إضافة مورد';
+  if (id) {
+    const s = state.suppliers.find(x => x.id === id);
+    if (s) {
+      document.getElementById('supplierName').value = s.name || '';
+      document.getElementById('supplierContact').value = s.contact || '';
+      document.getElementById('supplierEmail').value = s.email || '';
+      document.getElementById('supplierAddress').value = s.address || '';
+      document.getElementById('supplierStatus').value = s.status || 'active';
+      document.getElementById('supplierNotes').value = s.notes || '';
+    }
+  } else {
+    ['supplierName','supplierContact','supplierEmail','supplierAddress','supplierNotes'].forEach(i => document.getElementById(i).value = '');
+    document.getElementById('supplierStatus').value = 'active';
+  }
+  openModal('supplierModal');
+}
+
+function editSupplier(id) { openSupplierModal(id); }
+
+function saveSupplier() {
+  const id = document.getElementById('supplierId').value;
+  const name = document.getElementById('supplierName').value.trim();
+  if (!name) { showToast('اسم المورد مطلوب', 'error'); return; }
+  
+  const data = {
+    name,
+    contact: document.getElementById('supplierContact').value.trim(),
+    email: document.getElementById('supplierEmail').value.trim(),
+    address: document.getElementById('supplierAddress').value.trim(),
+    status: document.getElementById('supplierStatus').value,
+    notes: document.getElementById('supplierNotes').value.trim()
+  };
+  
+  if (id) {
+    const idx = state.suppliers.findIndex(s => s.id === id);
+    if (idx >= 0) {
+      state.suppliers[idx] = { ...state.suppliers[idx], ...data, updatedAt: new Date().toISOString() };
+      showToast('تم تحديث المورد', 'success');
+    }
+  } else {
+    state.suppliers.push({
+      id: genId('SUP'),
+      ...data,
+      assignedCategories: [],
+      createdAt: new Date().toISOString()
+    });
+    showToast('تم إضافة المورد', 'success');
+  }
+  
+  saveState();
+  closeModal('supplierModal');
+  renderSuppliers();
+  renderStats();
+  populateSupplierCategoryFilter();
+}
+
+function deleteSupplier(id) {
+  if (!confirm('هل أنت متأكد من حذف هذا المورد؟ سيتم حذف كل أوردراته أيضاً.')) return;
+  state.suppliers = state.suppliers.filter(s => s.id !== id);
+  state.orders = state.orders.filter(o => o.supplierId !== id);
+  saveState();
+  renderSuppliers();
+  renderStats();
+  populateSupplierCategoryFilter();
+  showToast('تم حذف المورد', 'success');
+}
+
+function resetSupplierFilters() {
+  document.getElementById('supplierSearch').value = '';
+  document.getElementById('supplierStatusFilter').value = '';
+  document.getElementById('supplierCategoryFilter').value = '';
+  renderSuppliers();
+}
+
+// ============================================
+// CATEGORIES ASSIGNMENT
+// ============================================
+let currentCatSupplierId = null;
+
+function openCategoriesModal(supplierId) {
+  currentCatSupplierId = supplierId;
+  const s = state.suppliers.find(x => x.id === supplierId);
+  if (!s) return;
+  document.getElementById('catModalSupplierName').textContent = s.name;
+  document.getElementById('categoryModalSearch').value = '';
+  renderCategoriesCheckboxes();
+  openModal('categoriesModal');
+}
+
+function renderCategoriesCheckboxes(filter = '') {
+  const s = state.suppliers.find(x => x.id === currentCatSupplierId);
+  const assigned = s?.assignedCategories || [];
+  const filtered = state.categories.filter(c => !filter || c.name.toLowerCase().includes(filter.toLowerCase()));
+  
+  document.getElementById('categoriesCheckboxes').innerHTML = filtered.map(c => `
+    <label class="category-checkbox ${assigned.includes(c.id) ? 'checked' : ''}" data-id="${c.id}">
+      <input type="checkbox" ${assigned.includes(c.id) ? 'checked' : ''} onchange="toggleCategoryCheckbox('${c.id}', this)">
+      <span class="category-checkbox-label">${c.name}</span>
+      <span style="margin-right:auto; font-size:0.75rem; color:var(--text-secondary);">(${c.subs.length})</span>
+    </label>
+  `).join('');
+}
+
+function toggleCategoryCheckbox(id, checkbox) {
+  const label = checkbox.closest('.category-checkbox');
+  label.classList.toggle('checked', checkbox.checked);
+}
+
+function filterCategoriesModal() {
+  const q = document.getElementById('categoryModalSearch').value;
+  renderCategoriesCheckboxes(q);
+}
+
+function selectAllCategories(select) {
+  document.querySelectorAll('#categoriesCheckboxes input[type=checkbox]').forEach(cb => {
+    cb.checked = select;
+    cb.closest('.category-checkbox').classList.toggle('checked', select);
+  });
+}
+
+function saveSupplierCategories() {
+  const s = state.suppliers.find(x => x.id === currentCatSupplierId);
+  if (!s) return;
+  const selected = Array.from(document.querySelectorAll('#categoriesCheckboxes input[type=checkbox]:checked'))
+    .map(cb => cb.closest('.category-checkbox').dataset.id);
+  s.assignedCategories = selected;
+  s.updatedAt = new Date().toISOString();
+  saveState();
+  closeModal('categoriesModal');
+  renderSuppliers();
+  showToast(`تم تعيين ${selected.length} مجموعة`, 'success');
+}
+
+// ============================================
+// ORDER WIZARD
+// ============================================
+function openOrderWizard(supplierId = null) {
+  state.currentWizard = { step: 1, supplierId: null, selectedCategories: [], allocations: {} };
+  document.getElementById('orderSupplierSearch').value = '';
+  document.getElementById('orderSupplierId').value = '';
+  document.getElementById('selectedSupplierInfo').innerHTML = '';
+  document.getElementById('orderSupplierList').style.display = 'none';
+  
+  if (supplierId) {
+    selectOrderSupplier(supplierId);
+  }
+  
+  updateWizardUI();
+  openModal('orderModal');
+}
+
+function filterOrderSuppliers() {
+  const q = document.getElementById('orderSupplierSearch').value.toLowerCase().trim();
+  const list = document.getElementById('orderSupplierList');
+  if (!q) { list.style.display = 'none'; return; }
+  
+  const filtered = state.suppliers.filter(s => s.name.toLowerCase().includes(q) || (s.contact || '').includes(q));
+  if (filtered.length === 0) {
+    list.innerHTML = '<div style="padding:0.8rem; color:var(--text-secondary); text-align:center;">لا نتائج</div>';
+  } else {
+    list.innerHTML = filtered.map(s => `
+      <div style="padding:0.7rem 1rem; cursor:pointer; border-bottom:1px solid var(--border-color); transition:all 0.2s;" 
+           onmouseover="this.style.background='var(--primary-light)'" 
+           onmouseout="this.style.background='transparent'"
+           onclick="selectOrderSupplier('${s.id}')">
+        <div style="font-weight:600;">${s.name}</div>
+        <div style="font-size:0.8rem; color:var(--text-secondary);">${s.contact || ''} • ${(s.assignedCategories || []).length} مجموعة</div>
+      </div>
+    `).join('');
+  }
+  list.style.display = 'block';
+}
+
+function selectOrderSupplier(id) {
+  const s = state.suppliers.find(x => x.id === id);
+  if (!s) return;
+  state.currentWizard.supplierId = id;
+  document.getElementById('orderSupplierId').value = id;
+  document.getElementById('orderSupplierSearch').value = s.name;
+  document.getElementById('orderSupplierList').style.display = 'none';
+  document.getElementById('selectedSupplierInfo').innerHTML = `
+    <div style="padding:0.8rem; background:var(--primary-light); border:1px solid var(--primary); border-radius:8px;">
+      <strong style="color:var(--primary);">${s.name}</strong>
+      <div style="font-size:0.85rem; color:var(--text-secondary); margin-top:0.3rem;">
+        ${s.contact || ''} • ${(s.assignedCategories || []).length} مجموعة مخصصة
+      </div>
+    </div>
+  `;
+}
+
+function updateWizardUI() {
+  const step = state.currentWizard.step;
+  for (let i = 1; i <= 4; i++) {
+    const el = document.getElementById('wizardStep' + i);
+    const stepEl = document.getElementById('step' + i);
+    el.style.display = i === step ? 'block' : 'none';
+    stepEl.classList.remove('active', 'completed');
+    if (i < step) stepEl.classList.add('completed');
+    else if (i === step) stepEl.classList.add('active');
+  }
+  document.getElementById('wizardPrevBtn').style.display = step > 1 ? 'inline-flex' : 'none';
+  document.getElementById('wizardNextBtn').style.display = step < 4 ? 'inline-flex' : 'none';
+  document.getElementById('wizardSaveBtn').style.display = step === 4 ? 'inline-flex' : 'none';
+  
+  if (step === 2) renderOrderCategories();
+  if (step === 3) renderAllocationGroups();
+  if (step === 4) renderOrderReview();
+}
+
+function wizardNext() {
+  const step = state.currentWizard.step;
+  if (step === 1) {
+    if (!state.currentWizard.supplierId) { showToast('اختر المورد أولاً', 'error'); return; }
+    const s = state.suppliers.find(x => x.id === state.currentWizard.supplierId);
+    if (!s.assignedCategories || s.assignedCategories.length === 0) {
+      showToast('هذا المورد ليس لديه مجموعات مخصصة. قم بتعيين مجموعات أولاً.', 'error');
+      return;
+    }
+  } else if (step === 2) {
+    if (state.currentWizard.selectedCategories.length === 0) {
+      showToast('اختر مجموعة واحدة على الأقل', 'error'); return;
+    }
+  } else if (step === 3) {
+    collectAllocations();
+  }
+  state.currentWizard.step = Math.min(4, step + 1);
+  updateWizardUI();
+}
+
+function wizardPrev() {
+  if (state.currentWizard.step === 3) collectAllocations();
+  state.currentWizard.step = Math.max(1, state.currentWizard.step - 1);
+  updateWizardUI();
+}
+
+function renderOrderCategories() {
+  const s = state.suppliers.find(x => x.id === state.currentWizard.supplierId);
+  const assigned = s?.assignedCategories || [];
+  const selected = state.currentWizard.selectedCategories;
+  
+  const cats = state.categories.filter(c => assigned.includes(c.id));
+  document.getElementById('orderCategoriesList').innerHTML = cats.map(c => `
+    <label class="category-checkbox ${selected.includes(c.id) ? 'checked' : ''}">
+      <input type="checkbox" ${selected.includes(c.id) ? 'checked' : ''} onchange="toggleOrderCategory('${c.id}', this)">
+      <span class="category-checkbox-label">${c.name}</span>
+      <span style="margin-right:auto; font-size:0.75rem; color:var(--text-secondary);">(${c.subs.length})</span>
+    </label>
+  `).join('');
+}
+
+function toggleOrderCategory(id, cb) {
+  const label = cb.closest('.category-checkbox');
+  label.classList.toggle('checked', cb.checked);
+  if (cb.checked) {
+    if (!state.currentWizard.selectedCategories.includes(id)) state.currentWizard.selectedCategories.push(id);
+  } else {
+    state.currentWizard.selectedCategories = state.currentWizard.selectedCategories.filter(x => x !== id);
+    delete state.currentWizard.allocations[id];
+  }
+}
+
+function renderAllocationGroups() {
+  const container = document.getElementById('allocationGroups');
+  const allocs = state.currentWizard.allocations;
+  
+  container.innerHTML = state.currentWizard.selectedCategories.map(catId => {
+    const cat = state.categories.find(c => c.id === catId);
+    if (!cat) return '';
+    const a = allocs[catId] || { target: 0, items: {} };
+    
+    return `
+      <div class="allocation-group" data-cat="${catId}">
+        <div class="allocation-group-header">
+          <div class="allocation-group-title"><i class="fas fa-folder"></i> ${cat.name}</div>
+          <div style="display:flex; gap:0.5rem; align-items:center;">
+            <label style="font-size:0.85rem; color:var(--text-secondary);">المستهدف:</label>
+            <input type="number" min="0" value="${a.target || 0}" 
+                   style="width:100px; padding:0.4rem; background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main); text-align:center;"
+                   onchange="updateAllocationTarget('${catId}', this.value)">
+          </div>
+        </div>
+        <div class="table-wrapper" style="max-height:300px; overflow-y:auto;">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>المجموعة الفرعية</th>
+                <th style="width:120px;">الكمية</th>
+                <th style="width:200px;">ملاحظات</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${cat.subs.map((sub, idx) => {
+                const subId = catId + '-' + (idx + 1).toString().padStart(2, '0');
+                const item = a.items?.[subId] || { qty: 0, note: '' };
+                return `
+                  <tr>
+                    <td>${sub}</td>
+                    <td><input type="number" min="0" value="${item.qty || 0}" data-sub="${subId}" onchange="updateSubQty('${catId}', '${subId}', this.value)"></td>
+                    <td><input type="text" value="${item.note || ''}" data-sub-note="${subId}" onchange="updateSubNote('${catId}', '${subId}', this.value)" style="width:100%; padding:0.4rem; background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; color:var(--text-main);"></td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div class="allocation-summary" id="summary-${catId}"></div>
+      </div>
+    `;
+  }).join('');
+  
+  state.currentWizard.selectedCategories.forEach(catId => updateAllocationSummary(catId));
+}
+
+function updateAllocationTarget(catId, val) {
+  if (!state.currentWizard.allocations[catId]) state.currentWizard.allocations[catId] = { target: 0, items: {} };
+  state.currentWizard.allocations[catId].target = parseInt(val) || 0;
+  updateAllocationSummary(catId);
+}
+
+function updateSubQty(catId, subId, val) {
+  if (!state.currentWizard.allocations[catId]) state.currentWizard.allocations[catId] = { target: 0, items: {} };
+  if (!state.currentWizard.allocations[catId].items[subId]) state.currentWizard.allocations[catId].items[subId] = { qty: 0, note: '' };
+  state.currentWizard.allocations[catId].items[subId].qty = parseInt(val) || 0;
+  updateAllocationSummary(catId);
+}
+
+function updateSubNote(catId, subId, val) {
+  if (!state.currentWizard.allocations[catId]) state.currentWizard.allocations[catId] = { target: 0, items: {} };
+  if (!state.currentWizard.allocations[catId].items[subId]) state.currentWizard.allocations[catId].items[subId] = { qty: 0, note: '' };
+  state.currentWizard.allocations[catId].items[subId].note = val;
+}
+
+function updateAllocationSummary(catId) {
+  const a = state.currentWizard.allocations[catId] || { target: 0, items: {} };
+  const allocated = Object.values(a.items || {}).reduce((s, i) => s + (parseInt(i.qty) || 0), 0);
+  const target = parseInt(a.target) || 0;
+  const shortage = target - allocated;
+  const progress = target > 0 ? Math.round((allocated / target) * 100) : 0;
+  const progressClass = progress >= 100 ? 'success' : progress >= 50 ? 'warning' : 'danger';
+  
+  const el = document.getElementById('summary-' + catId);
+  if (el) {
+    el.innerHTML = `
+      <div class="allocation-summary-item">
+        <div class="allocation-summary-label">المستهدف</div>
+        <div class="allocation-summary-value" style="color:var(--info);">${target.toLocaleString()}</div>
+      </div>
+      <div class="allocation-summary-item">
+        <div class="allocation-summary-label">المسجل</div>
+        <div class="allocation-summary-value" style="color:var(--success);">${allocated.toLocaleString()}</div>
+      </div>
+      <div class="allocation-summary-item">
+        <div class="allocation-summary-label">العجز</div>
+        <div class="allocation-summary-value" style="color:${shortage > 0 ? 'var(--danger)' : 'var(--success)'};">${shortage.toLocaleString()}</div>
+      </div>
+      <div class="allocation-summary-item">
+        <div class="allocation-summary-label">الإنجاز</div>
+        <div class="allocation-summary-value" style="color:var(--primary);">${progress}%</div>
+        <div class="progress-bar" style="margin-top:0.3rem;"><div class="progress-fill ${progressClass}" style="width:${Math.min(100, progress)}%;"></div></div>
+      </div>
+    `;
+  }
+}
+
+function collectAllocations() {
+  // Values are already in state via onchange handlers
+}
+
+function renderOrderReview() {
+  const s = state.suppliers.find(x => x.id === state.currentWizard.supplierId);
+  let totalTarget = 0, totalAllocated = 0;
+  
+  const rows = state.currentWizard.selectedCategories.map(catId => {
+    const cat = state.categories.find(c => c.id === catId);
+    const a = state.currentWizard.allocations[catId] || { target: 0, items: {} };
+    const allocated = Object.values(a.items || {}).reduce((sum, i) => sum + (parseInt(i.qty) || 0), 0);
+    const target = parseInt(a.target) || 0;
+    const shortage = target - allocated;
+    const progress = target > 0 ? Math.round((allocated / target) * 100) : 0;
+    totalTarget += target;
+    totalAllocated += allocated;
+    const progressClass = progress >= 100 ? 'success' : progress >= 50 ? 'warning' : 'danger';
+    
+    return `
+      <tr>
+        <td><strong>${cat.name}</strong></td>
+        <td>${target.toLocaleString()}</td>
+        <td>${allocated.toLocaleString()}</td>
+        <td style="color:${shortage > 0 ? 'var(--danger)' : 'var(--success)'};">${shortage.toLocaleString()}</td>
+        <td>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <div class="progress-bar" style="flex:1;"><div class="progress-fill ${progressClass}" style="width:${Math.min(100, progress)}%;"></div></div>
+            <span style="font-weight:700;">${progress}%</span>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join('');
+  
+  const overallProgress = totalTarget > 0 ? Math.round((totalAllocated / totalTarget) * 100) : 0;
+  
+  document.getElementById('orderReview').innerHTML = `
+    <div style="padding:1rem; background:var(--primary-light); border:1px solid var(--primary); border-radius:10px; margin-bottom:1rem;">
+      <h4 style="color:var(--primary); margin-bottom:0.5rem;"><i class="fas fa-user-tie"></i> المورد: ${s.name}</h4>
+      <p style="color:var(--text-secondary); font-size:0.9rem;">${s.contact || ''} ${s.address ? '• ' + s.address : ''}</p>
+    </div>
+    <div class="table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr><th>المجموعة الرئيسية</th><th>المستهدف</th><th>المسجل</th><th>العجز</th><th>الإنجاز</th></tr>
+        </thead>
+        <tbody>${rows}</tbody>
+        <tfoot>
+          <tr style="background:var(--bg-hover); font-weight:700;">
+            <td>الإجمالي</td>
+            <td>${totalTarget.toLocaleString()}</td>
+            <td>${totalAllocated.toLocaleString()}</td>
+            <td style="color:${(totalTarget-totalAllocated) > 0 ? 'var(--danger)' : 'var(--success)'};">${(totalTarget-totalAllocated).toLocaleString()}</td>
+            <td><strong style="color:var(--primary); font-size:1.1rem;">${overallProgress}%</strong></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  `;
+}
+
+function saveOrder() {
+  const s = state.suppliers.find(x => x.id === state.currentWizard.supplierId);
+  if (!s) return;
+  
+  const items = state.currentWizard.selectedCategories.map(catId => {
+    const cat = state.categories.find(c => c.id === catId);
+    const a = state.currentWizard.allocations[catId] || { target: 0, items: {} };
+    const allocated = Object.values(a.items || {}).reduce((sum, i) => sum + (parseInt(i.qty) || 0), 0);
+    const target = parseInt(a.target) || 0;
+    return {
+      mainCategoryId: catId,
+      mainCategoryName: cat.name,
+      target,
+      subAllocations: a.items || {},
+      totalAllocated: allocated,
+      shortfall: target - allocated,
+      progress: target > 0 ? Math.round((allocated / target) * 100) : 0
+    };
+  });
+  
+  const totals = {
+    targetSum: items.reduce((s, i) => s + i.target, 0),
+    allocatedSum: items.reduce((s, i) => s + i.totalAllocated, 0),
+    shortfallSum: items.reduce((s, i) => s + i.shortfall, 0),
+    overallProgress: 0
+  };
+  totals.overallProgress = totals.targetSum > 0 ? Math.round((totals.allocatedSum / totals.targetSum) * 100) : 0;
+  
+  const order = {
+    id: genId('ORD'),
+    supplierId: s.id,
+    supplierName: s.name,
+    orderDate: new Date().toISOString(),
+    status: 'draft',
+    notes: '',
+    items,
+    totals
+  };
+  
+  state.orders.push(order);
+  saveState();
+  closeModal('orderModal');
+  renderOrders();
+  renderStats();
+  showToast('تم حفظ الأمر بنجاح', 'success');
+}
+
+// ============================================
+// ORDERS LIST
+// ============================================
+function renderOrders() {
+  const search = (document.getElementById('orderSearch')?.value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('orderStatusFilter')?.value || '';
+  const supplierFilter = document.getElementById('orderSupplierFilter')?.value || '';
+  
+  let filtered = state.orders.filter(o => {
+    if (statusFilter && o.status !== statusFilter) return false;
+    if (supplierFilter && o.supplierId !== supplierFilter) return false;
+    if (search) {
+      const hay = (o.id + ' ' + o.supplierName).toLowerCase();
+      if (!hay.includes(search)) return false;
+    }
+    return true;
+  }).sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate));
+  
+  const list = document.getElementById('ordersList');
+  if (filtered.length === 0) {
+    list.innerHTML = `<div class="empty-state"><i class="fas fa-clipboard"></i><div class="empty-state-title">لا توجد أوامر</div><div>اضغط "أمر جديد" لإنشاء أول أمر</div></div>`;
+    return;
+  }
+  
+  const statusLabels = { draft: 'مسودة', pending: 'قيد الانتظار', confirmed: 'مؤكد', delivered: 'تم التسليم', cancelled: 'ملغي' };
+  const statusColors = { draft: 'badge-info', pending: 'badge-warning', confirmed: 'badge-primary', delivered: 'badge-success', cancelled: 'badge-danger' };
+  
+  list.innerHTML = filtered.map(o => {
+    const progressClass = o.totals.overallProgress >= 100 ? 'success' : o.totals.overallProgress >= 50 ? 'warning' : 'danger';
+    return `
+      <div class="order-card" onclick="showOrderDetails('${o.id}')">
+        <div class="order-header">
+          <div>
+            <div class="order-id"><i class="fas fa-file-invoice"></i> ${o.id}</div>
+            <div style="font-weight:600; margin-top:0.3rem;">${o.supplierName}</div>
+          </div>
+          <div style="text-align:left;">
+            <span class="badge ${statusColors[o.status]}">${statusLabels[o.status]}</span>
+            <div style="font-size:0.8rem; color:var(--text-secondary); margin-top:0.3rem;">${new Date(o.orderDate).toLocaleDateString('ar-SA')}</div>
+          </div>
+        </div>
+        <div class="order-meta">
+          <span><i class="fas fa-layer-group"></i> ${o.items.length} مجموعة</span>
+          <span><i class="fas fa-bullseye"></i> مستهدف: ${o.totals.targetSum.toLocaleString()}</span>
+          <span><i class="fas fa-check"></i> مسجل: ${o.totals.allocatedSum.toLocaleString()}</span>
+          <span style="color:${o.totals.shortfallSum > 0 ? 'var(--danger)' : 'var(--success)'};"><i class="fas fa-exclamation-triangle"></i> عجز: ${o.totals.shortfallSum.toLocaleString()}</span>
+        </div>
+        <div class="order-progress">
+          <div style="display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:0.3rem;">
+            <span style="color:var(--text-secondary);">نسبة الإنجاز</span>
+            <strong style="color:var(--primary);">${o.totals.overallProgress}%</strong>
+          </div>
+          <div class="progress-bar"><div class="progress-fill ${progressClass}" style="width:${Math.min(100, o.totals.overallProgress)}%;"></div></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function showOrderDetails(id) {
+  const o = state.orders.find(x => x.id === id);
+  if (!o) return;
+  
+  const statusLabels = { draft: 'مسودة', pending: 'قيد الانتظار', confirmed: 'مؤكد', delivered: 'تم التسليم', cancelled: 'ملغي' };
+  
+  document.getElementById('orderDetailsContent').innerHTML = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+      <div style="padding:1rem; background:var(--bg-input); border-radius:10px;">
+        <div style="color:var(--text-secondary); font-size:0.85rem;">رقم الأمر</div>
+        <div style="font-weight:700; color:var(--primary); font-size:1.1rem;">${o.id}</div>
+      </div>
+      <div style="padding:1rem; background:var(--bg-input); border-radius:10px;">
+        <div style="color:var(--text-secondary); font-size:0.85rem;">المورد</div>
+        <div style="font-weight:700;">${o.supplierName}</div>
+      </div>
+      <div style="padding:1rem; background:var(--bg-input); border-radius:10px;">
+        <div style="color:var(--text-secondary); font-size:0.85rem;">التاريخ</div>
+        <div style="font-weight:700;">${new Date(o.orderDate).toLocaleDateString('ar-SA')}</div>
+      </div>
+      <div style="padding:1rem; background:var(--bg-input); border-radius:10px;">
+        <div style="color:var(--text-secondary); font-size:0.85rem;">الحالة</div>
+        <select class="form-input" onchange="updateOrderStatus('${o.id}', this.value)" style="padding:0.4rem;">
+          ${Object.entries(statusLabels).map(([k, v]) => `<option value="${k}" ${o.status === k ? 'selected' : ''}>${v}</option>`).join('')}
+        </select>
+      </div>
+    </div>
+    ${o.items.map(item => {
+      const progressClass = item.progress >= 100 ? 'success' : item.progress >= 50 ? 'warning' : 'danger';
+      const cat = state.categories.find(c => c.id === item.mainCategoryId);
+      const subs = cat ? cat.subs : [];
+      const filledSubs = Object.entries(item.subAllocations || {}).filter(([_, v]) => v.qty > 0);
+      
+      return `
+        <div class="allocation-group">
+          <div class="allocation-group-header">
+            <div class="allocation-group-title"><i class="fas fa-folder"></i> ${item.mainCategoryName}</div>
+            <span class="badge badge-primary">${item.progress}%</span>
+          </div>
+          <div class="allocation-summary">
+            <div class="allocation-summary-item">
+              <div class="allocation-summary-label">المستهدف</div>
+              <div class="allocation-summary-value" style="color:var(--info);">${item.target.toLocaleString()}</div>
+            </div>
+            <div class="allocation-summary-item">
+              <div class="allocation-summary-label">المسجل</div>
+              <div class="allocation-summary-value" style="color:var(--success);">${item.totalAllocated.toLocaleString()}</div>
+            </div>
+            <div class="allocation-summary-item">
+              <div class="allocation-summary-label">العجز</div>
+              <div class="allocation-summary-value" style="color:${item.shortfall > 0 ? 'var(--danger)' : 'var(--success)'};">${item.shortfall.toLocaleString()}</div>
+            </div>
+            <div class="allocation-summary-item">
+              <div class="allocation-summary-label">الإنجاز</div>
+              <div class="progress-bar" style="margin-top:0.5rem;"><div class="progress-fill ${progressClass}" style="width:${Math.min(100, item.progress)}%;"></div></div>
+            </div>
+          </div>
+          ${filledSubs.length > 0 ? `
+            <div style="margin-top:0.8rem; font-size:0.85rem; color:var(--text-secondary);">
+              <strong>الفرعيات المسجلة (${filledSubs.length}):</strong>
+              <div style="display:flex; flex-wrap:wrap; gap:0.4rem; margin-top:0.4rem;">
+                ${filledSubs.map(([subId, v]) => {
+                  const idx = parseInt(subId.split('-')[1]) - 1;
+                  const subName = subs[idx] || subId;
+                  return `<span class="category-chip">${subName}: ${v.qty}</span>`;
+                }).join('')}
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('')}
+    <div style="margin-top:1rem; display:flex; gap:0.5rem; justify-content:flex-end;">
+      <button class="btn btn-danger btn-sm" onclick="deleteOrder('${o.id}')"><i class="fas fa-trash"></i> حذف</button>
+    </div>
+  `;
+  openModal('orderDetailsModal');
+}
+
+function updateOrderStatus(id, status) {
+  const o = state.orders.find(x => x.id === id);
+  if (o) {
+    o.status = status;
+    saveState();
+    renderOrders();
+    renderStats();
+    showToast('تم تحديث الحالة', 'success');
+  }
+}
+
+function deleteOrder(id) {
+  if (!confirm('هل أنت متأكد من حذف هذا الأمر؟')) return;
+  state.orders = state.orders.filter(o => o.id !== id);
+  saveState();
+  closeModal('orderDetailsModal');
+  renderOrders();
+  renderStats();
+  showToast('تم حذف الأمر', 'success');
+}
+
+function resetOrderFilters() {
+  document.getElementById('orderSearch').value = '';
+  document.getElementById('orderStatusFilter').value = '';
+  document.getElementById('orderSupplierFilter').value = '';
+  renderOrders();
+}
+
+function printOrderDetails() { window.print(); }
+
+// ============================================
+// TRACKING
+// ============================================
+function renderTracking() {
+  const search = (document.getElementById('trackingSearch')?.value || '').toLowerCase().trim();
+  const suppliers = state.suppliers.filter(s => !search || s.name.toLowerCase().includes(search));
+  
+  const content = document.getElementById('trackingContent');
+  if (suppliers.length === 0) {
+    content.innerHTML = `<div class="empty-state"><i class="fas fa-chart-line"></i><div class="empty-state-title">لا توجد بيانات</div></div>`;
+    return;
+  }
+  
+  content.innerHTML = suppliers.map(s => {
+    const orders = state.orders.filter(o => o.supplierId === s.id);
+    if (orders.length === 0) return '';
+    
+    const totalTarget = orders.reduce((sum, o) => sum + (o.totals?.targetSum || 0), 0);
+    const totalAllocated = orders.reduce((sum, o) => sum + (o.totals?.allocatedSum || 0), 0);
+    const totalShortage = totalTarget - totalAllocated;
+    const progress = totalTarget > 0 ? Math.round((totalAllocated / totalTarget) * 100) : 0;
+    const progressClass = progress >= 100 ? 'success' : progress >= 50 ? 'warning' : 'danger';
+    const status = progress >= 100 ? 'مكتمل' : progress > 0 ? 'تحت التنفيذ' : 'لم يبدأ';
+    const statusColor = progress >= 100 ? 'badge-success' : progress > 0 ? 'badge-warning' : 'badge-info';
+    
+    // Aggregate by category
+    const catMap = {};
+    orders.forEach(o => {
+      o.items.forEach(item => {
+        if (!catMap[item.mainCategoryId]) {
+          catMap[item.mainCategoryId] = { name: item.mainCategoryName, target: 0, allocated: 0 };
+        }
+        catMap[item.mainCategoryId].target += item.target;
+        catMap[item.mainCategoryId].allocated += item.totalAllocated;
+      });
+    });
+    
+    return `
+      <div class="card" style="margin-bottom:1rem;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fas fa-user-tie"></i> ${s.name}</h3>
+          <span class="badge ${statusColor}">${status}</span>
+        </div>
+        <div class="allocation-summary" style="margin-bottom:1rem;">
+          <div class="allocation-summary-item">
+            <div class="allocation-summary-label">المستهدف</div>
+            <div class="allocation-summary-value" style="color:var(--info);">${totalTarget.toLocaleString()}</div>
+          </div>
+          <div class="allocation-summary-item">
+            <div class="allocation-summary-label">المسجل</div>
+            <div class="allocation-summary-value" style="color:var(--success);">${totalAllocated.toLocaleString()}</div>
+          </div>
+          <div class="allocation-summary-item">
+            <div class="allocation-summary-label">العجز</div>
+            <div class="allocation-summary-value" style="color:${totalShortage > 0 ? 'var(--danger)' : 'var(--success)'};">${totalShortage.toLocaleString()}</div>
+          </div>
+          <div class="allocation-summary-item">
+            <div class="allocation-summary-label">الإنجاز</div>
+            <div class="allocation-summary-value" style="color:var(--primary);">${progress}%</div>
+            <div class="progress-bar" style="margin-top:0.3rem;"><div class="progress-fill ${progressClass}" style="width:${Math.min(100, progress)}%;"></div></div>
+          </div>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr><th>المجموعة</th><th>المستهدف</th><th>المسجل</th><th>العجز</th><th>الإنجاز</th></tr>
+            </thead>
+            <tbody>
+              ${Object.values(catMap).map(c => {
+                const p = c.target > 0 ? Math.round((c.allocated / c.target) * 100) : 0;
+                const pc = p >= 100 ? 'success' : p >= 50 ? 'warning' : 'danger';
+                return `
+                  <tr>
+                    <td><strong>${c.name}</strong></td>
+                    <td>${c.target.toLocaleString()}</td>
+                    <td>${c.allocated.toLocaleString()}</td>
+                    <td style="color:${(c.target-c.allocated) > 0 ? 'var(--danger)' : 'var(--success)'};">${(c.target-c.allocated).toLocaleString()}</td>
+                    <td>
+                      <div style="display:flex; align-items:center; gap:0.5rem;">
+                        <div class="progress-bar" style="flex:1;"><div class="progress-fill ${pc}" style="width:${Math.min(100, p)}%;"></div></div>
+                        <span style="font-weight:700;">${p}%</span>
+                      </div>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ============================================
+// CATEGORIES VIEW
+// ============================================
+function renderCategories() {
+  const search = (document.getElementById('categorySearch')?.value || '').toLowerCase().trim();
+  const filtered = state.categories.filter(c => !search || c.name.toLowerCase().includes(search) || c.subs.some(s => s.toLowerCase().includes(search)));
+  
+  document.getElementById('categoriesContent').innerHTML = filtered.map(c => `
+    <details class="allocation-group" style="margin-bottom:0.6rem;">
+      <summary style="cursor:pointer; padding:0.8rem; background:var(--bg-card); border-radius:8px; font-weight:700; color:var(--primary); list-style:none; display:flex; justify-content:space-between; align-items:center;">
+        <span><i class="fas fa-folder"></i> ${c.name} <span style="color:var(--text-secondary); font-weight:400; font-size:0.85rem;">(${c.id})</span></span>
+        <span class="badge badge-primary">${c.subs.length} فرع</span>
+      </summary>
+      <div style="padding:1rem; display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:0.4rem;">
+        ${c.subs.map((s, i) => `<div style="padding:0.5rem 0.8rem; background:var(--bg-input); border-radius:6px; font-size:0.85rem;">${s}</div>`).join('')}
+      </div>
+    </details>
+  `).join('');
+}
+
+// ============================================
+// DASHBOARD
+// ============================================
+function renderDashboard() {
+  // Orders by status chart
+  const statusCounts = { draft: 0, pending: 0, confirmed: 0, delivered: 0, cancelled: 0 };
+  state.orders.forEach(o => statusCounts[o.status]++);
+  
+  if (charts.orders) charts.orders.destroy();
+  const ctx1 = document.getElementById('ordersChart').getContext('2d');
+  charts.orders = new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+      labels: ['مسودة', 'قيد الانتظار', 'مؤكد', 'تم التسليم', 'ملغي'],
+      datasets: [{
+        data: Object.values(statusCounts),
+        backgroundColor: ['#3b82f6', '#f59e0b', '#d4a853', '#10b981', '#ef4444'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'bottom', labels: { color: '#fff' } } }
+    }
+  });
+  
+  // Top suppliers chart
+  const supplierPerf = {};
+  state.orders.forEach(o => {
+    if (!supplierPerf[o.supplierName]) supplierPerf[o.supplierName] = 0;
+    supplierPerf[o.supplierName] += o.totals?.allocatedSum || 0;
+  });
+  const topSuppliers = Object.entries(supplierPerf).sort((a, b) => b[1] - a[1]).slice(0, 8);
+  
+  if (charts.suppliers) charts.suppliers.destroy();
+  const ctx2 = document.getElementById('suppliersChart').getContext('2d');
+  charts.suppliers = new Chart(ctx2, {
+    type: 'bar',
+    data: {
+      labels: topSuppliers.map(s => s[0]),
+      datasets: [{
+        label: 'إجمالي المسجل',
+        data: topSuppliers.map(s => s[1]),
+        backgroundColor: '#d4a853',
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#2a3447' }, ticks: { color: '#8b9aae' } },
+        y: { grid: { display: false }, ticks: { color: '#fff' } }
+      }
+    }
+  });
+  
+  // Recent orders
+  const recent = [...state.orders].sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate)).slice(0, 5);
+  const statusLabels = { draft: 'مسودة', pending: 'قيد الانتظار', confirmed: 'مؤكد', delivered: 'تم التسليم', cancelled: 'ملغي' };
+  const statusColors = { draft: 'badge-info', pending: 'badge-warning', confirmed: 'badge-primary', delivered: 'badge-success', cancelled: 'badge-danger' };
+  
+  document.getElementById('recentOrders').innerHTML = recent.length === 0 
+    ? `<div class="empty-state"><i class="fas fa-inbox"></i><div class="empty-state-title">لا توجد أوامر بعد</div></div>`
+    : `<div class="table-wrapper"><table class="data-table">
+        <thead><tr><th>رقم الأمر</th><th>المورد</th><th>التاريخ</th><th>المجموعات</th><th>الإنجاز</th><th>الحالة</th></tr></thead>
+        <tbody>
+          ${recent.map(o => `
+            <tr style="cursor:pointer;" onclick="showOrderDetails('${o.id}')">
+              <td><strong style="color:var(--primary);">${o.id}</strong></td>
+              <td>${o.supplierName}</td>
+              <td>${new Date(o.orderDate).toLocaleDateString('ar-SA')}</td>
+              <td>${o.items.length}</td>
+              <td><strong>${o.totals.overallProgress}%</strong></td>
+              <td><span class="badge ${statusColors[o.status]}">${statusLabels[o.status]}</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table></div>`;
+}
+
+// ============================================
+// REPORTS
+// ============================================
+function showReport(type) {
+  const content = document.getElementById('reportContent');
+  let html = '';
+  
+  if (type === 'suppliers') {
+    html = `
+      <h3 style="color:var(--primary); margin-bottom:1rem;"><i class="fas fa-users"></i> تقرير الموردين</h3>
+      <div class="table-wrapper"><table class="data-table">
+        <thead><tr><th>المورد</th><th>الحالة</th><th>المجموعات</th><th>الأوردرات</th><th>إجمالي المستهدف</th><th>إجمالي المسجل</th><th>الإنجاز</th></tr></thead>
+        <tbody>
+          ${state.suppliers.map(s => {
+            const orders = state.orders.filter(o => o.supplierId === s.id);
+            const target = orders.reduce((sum, o) => sum + (o.totals?.targetSum || 0), 0);
+            const allocated = orders.reduce((sum, o) => sum + (o.totals?.allocatedSum || 0), 0);
+            const progress = target > 0 ? Math.round((allocated / target) * 100) : 0;
+            return `
+              <tr>
+                <td><strong>${s.name}</strong></td>
+                <td><span class="badge ${s.status === 'active' ? 'badge-success' : 'badge-danger'}">${s.status === 'active' ? 'نشط' : 'غير نشط'}</span></td>
+                <td>${(s.assignedCategories || []).length}</td>
+                <td>${orders.length}</td>
+                <td>${target.toLocaleString()}</td>
+                <td>${allocated.toLocaleString()}</td>
+                <td><strong style="color:var(--primary);">${progress}%</strong></td>
+              </tr>
+            `;
+          }).join('') || '<tr><td colspan="7" style="text-align:center; padding:2rem;">لا بيانات</td></tr>'}
+        </tbody>
+      </table></div>
+    `;
+  } else if (type === 'orders') {
+    const statusLabels = { draft: 'مسودة', pending: 'قيد الانتظار', confirmed: 'مؤكد', delivered: 'تم التسليم', cancelled: 'ملغي' };
+    html = `
+      <h3 style="color:var(--primary); margin-bottom:1rem;"><i class="fas fa-clipboard-list"></i> تقرير الأوردرات</h3>
+      <div class="table-wrapper"><table class="data-table">
+        <thead><tr><th>رقم الأمر</th><th>المورد</th><th>التاريخ</th><th>الحالة</th><th>المستهدف</th><th>المسجل</th><th>العجز</th><th>الإنجاز</th></tr></thead>
+        <tbody>
+          ${state.orders.map(o => `
+            <tr>
+              <td><strong style="color:var(--primary);">${o.id}</strong></td>
+              <td>${o.supplierName}</td>
+              <td>${new Date(o.orderDate).toLocaleDateString('ar-SA')}</td>
+              <td>${statusLabels[o.status]}</td>
+              <td>${o.totals.targetSum.toLocaleString()}</td>
+              <td>${o.totals.allocatedSum.toLocaleString()}</td>
+              <td style="color:${o.totals.shortfallSum > 0 ? 'var(--danger)' : 'var(--success)'};">${o.totals.shortfallSum.toLocaleString()}</td>
+              <td><strong>${o.totals.overallProgress}%</strong></td>
+            </tr>
+          `).join('') || '<tr><td colspan="8" style="text-align:center; padding:2rem;">لا بيانات</td></tr>'}
+        </tbody>
+      </table></div>
+    `;
+  } else if (type === 'categories') {
+    const catMap = {};
+    state.orders.forEach(o => {
+      o.items.forEach(item => {
+        if (!catMap[item.mainCategoryId]) catMap[item.mainCategoryId] = { name: item.mainCategoryName, target: 0, allocated: 0, ordersCount: 0 };
+        catMap[item.mainCategoryId].target += item.target;
+        catMap[item.mainCategoryId].allocated += item.totalAllocated;
+        catMap[item.mainCategoryId].ordersCount++;
+      });
+    });
+    html = `
+      <h3 style="color:var(--primary); margin-bottom:1rem;"><i class="fas fa-layer-group"></i> تقرير المجموعات</h3>
+      <div class="table-wrapper"><table class="data-table">
+        <thead><tr><th>المجموعة</th><th>عدد الأوردرات</th><th>المستهدف</th><th>المسجل</th><th>العجز</th><th>الإنجاز</th></tr></thead>
+        <tbody>
+          ${Object.values(catMap).sort((a, b) => b.target - a.target).map(c => {
+            const p = c.target > 0 ? Math.round((c.allocated / c.target) * 100) : 0;
+            return `
+              <tr>
+                <td><strong>${c.name}</strong></td>
+                <td>${c.ordersCount}</td>
+                <td>${c.target.toLocaleString()}</td>
+                <td>${c.allocated.toLocaleString()}</td>
+                <td style="color:${(c.target-c.allocated) > 0 ? 'var(--danger)' : 'var(--success)'};">${(c.target-c.allocated).toLocaleString()}</td>
+                <td><strong style="color:var(--primary);">${p}%</strong></td>
+              </tr>
+            `;
+          }).join('') || '<tr><td colspan="6" style="text-align:center; padding:2rem;">لا بيانات</td></tr>'}
+        </tbody>
+      </table></div>
+    `;
+  } else if (type === 'shortage') {
+    const shortages = [];
+    state.orders.forEach(o => {
+      o.items.forEach(item => {
+        if (item.shortfall > 0) {
+          shortages.push({
+            order: o.id,
+            supplier: o.supplierName,
+            category: item.mainCategoryName,
+            target: item.target,
+            allocated: item.totalAllocated,
+            shortfall: item.shortfall
+          });
+        }
+      });
+    });
+    shortages.sort((a, b) => b.shortfall - a.shortfall);
+    html = `
+      <h3 style="color:var(--primary); margin-bottom:1rem;"><i class="fas fa-exclamation-triangle"></i> تقرير العجز</h3>
+      <div class="table-wrapper"><table class="data-table">
+        <thead><tr><th>المورد</th><th>المجموعة</th><th>المستهدف</th><th>المسجل</th><th>العجز</th></tr></thead>
+        <tbody>
+          ${shortages.map(s => `
+            <tr>
+              <td>${s.supplier}</td>
+              <td><strong>${s.category}</strong></td>
+              <td>${s.target.toLocaleString()}</td>
+              <td>${s.allocated.toLocaleString()}</td>
+              <td style="color:var(--danger); font-weight:700;">${s.shortfall.toLocaleString()}</td>
+            </tr>
+          `).join('') || '<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--success);">✓ لا يوجد عجز - كل شيء مكتمل</td></tr>'}
+        </tbody>
+      </table></div>
+    `;
+  }
+  
+  content.innerHTML = html;
+}
+
+// ============================================
+// IMPORT / EXPORT
+// ============================================
+function handleImport(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  showLoading(true, 'جاري استيراد المجموعات...');
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' });
+      
+      if (rows.length < 2) { showToast('الملف فارغ', 'error'); showLoading(false); return; }
+      
+      // Detect columns
+      const headers = rows[0].map(h => String(h).toLowerCase().trim());
+      const idIdx = headers.findIndex(h => h.includes('المجموعة') && !h.includes('فرعية') && !h.includes('اسم'));
+      const nameIdx = headers.findIndex(h => h.includes('اسم') && h.includes('رئيسية'));
+      const subIdx = headers.findIndex(h => h.includes('فرعية'));
+      
+      if (nameIdx < 0 || subIdx < 0) {
+        showToast('تعذر التعرف على الأعمدة. تأكد من وجود: اسم المجموعة الرئيسية، اسم المجموعة الفرعية', 'error');
+        showLoading(false);
+        return;
+      }
+      
+      const catMap = {};
+      for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        const id = String(row[idIdx >= 0 ? idIdx : 0] || '').trim();
+        const name = String(row[nameIdx] || '').trim();
+        const sub = String(row[subIdx] || '').trim();
+        if (!name || !sub) continue;
+        const key = id || name;
+        if (!catMap[key]) catMap[key] = { id: id || key, name, subs: [] };
+        if (!catMap[key].subs.includes(sub)) catMap[key].subs.push(sub);
+      }
+      
+      const imported = Object.values(catMap);
+      if (imported.length === 0) {
+        showToast('لم يتم العثور على بيانات', 'error');
+      } else {
+        state.categories = imported;
+        saveState();
+        renderStats();
+        populateSupplierCategoryFilter();
+        showToast(`تم استيراد ${imported.length} مجموعة رئيسية`, 'success');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('خطأ في الاستيراد: ' + err.message, 'error');
+    }
+    showLoading(false);
+  };
+  reader.readAsArrayBuffer(file);
+  event.target.value = '';
+}
+
+function exportToExcel() {
+  try {
+    const wb = XLSX.utils.book_new();
+    
+    // Suppliers sheet
+    const supData = state.suppliers.map(s => ({
+      'الرقم': s.id,
+      'الاسم': s.name,
+      'الجوال': s.contact,
+      'البريد': s.email,
+      'العنوان': s.address,
+      'الحالة': s.status,
+      'المجموعات': (s.assignedCategories || []).join(' | ')
+    }));
+    if (supData.length > 0) {
+      const ws1 = XLSX.utils.json_to_sheet(supData);
+      XLSX.utils.book_append_sheet(wb, ws1, 'الموردون');
+    }
+    
+    // Orders sheet
+    const ordData = state.orders.map(o => ({
+      'رقم الأمر': o.id,
+      'المورد': o.supplierName,
+      'التاريخ': new Date(o.orderDate).toLocaleDateString('ar-SA'),
+      'الحالة': o.status,
+      'المستهدف': o.totals.targetSum,
+      'المسجل': o.totals.allocatedSum,
+      'العجز': o.totals.shortfallSum,
+      'الإنجاز %': o.totals.overallProgress
+    }));
+    if (ordData.length > 0) {
+      const ws2 = XLSX.utils.json_to_sheet(ordData);
+      XLSX.utils.book_append_sheet(wb, ws2, 'الأوردرات');
+    }
+    
+    // Categories sheet
+    const catData = [];
+    state.categories.forEach(c => {
+      c.subs.forEach(s => catData.push({ 'الرقم': c.id, 'المجموعة الرئيسية': c.name, 'المجموعة الفرعية': s }));
+    });
+    if (catData.length > 0) {
+      const ws3 = XLSX.utils.json_to_sheet(catData);
+      XLSX.utils.book_append_sheet(wb, ws3, 'المجموعات');
+    }
+    
+    XLSX.writeFile(wb, `Suppliers_Report_${new Date().toLocaleDateString('ar-SA').replace(/\//g, '-')}.xlsx`);
+    showToast('تم التصدير بنجاح', 'success');
+  } catch (err) {
+    showToast('خطأ في التصدير', 'error');
+  }
+}
+
+function exportToPDF() {
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFont('helvetica');
+    doc.setFontSize(16);
+    doc.text('Suppliers Orders Report', 20, 20);
+    doc.setFontSize(10);
+    doc.text('Date: ' + new Date().toLocaleDateString(), 20, 30);
+    doc.text('Total Suppliers: ' + state.suppliers.length, 20, 40);
+    doc.text('Total Orders: ' + state.orders.length, 20, 50);
+    
+    if (state.orders.length > 0) {
+      doc.autoTable({
+        startY: 60,
+        head: [['Order ID', 'Supplier', 'Date', 'Target', 'Allocated', 'Progress']],
+        body: state.orders.map(o => [
+          o.id, o.supplierName, new Date(o.orderDate).toLocaleDateString(),
+          o.totals.targetSum, o.totals.allocatedSum, o.totals.overallProgress + '%'
+        ]),
+        styles: { fontSize: 8 }
+      });
+    }
+    
+    doc.save(`Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.pdf`);
+    showToast('تم تصدير PDF', 'success');
+  } catch (err) {
+    showToast('خطأ في التصدير', 'error');
+  }
+}
+
+function backupData() {
+  const data = JSON.stringify(state, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `backup_${new Date().toLocaleDateString('ar-SA').replace(/\//g, '-')}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('تم تحميل النسخة الاحتياطية', 'success');
+}
+
+function restoreData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.categories && data.suppliers && data.orders) {
+        state = data;
+        saveState();
+        renderAll();
+        showToast('تم استعادة البيانات بنجاح', 'success');
+      } else {
+        showToast('ملف غير صالح', 'error');
+      }
+    } catch (err) {
+      showToast('خطأ في قراءة الملف', 'error');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
+}
+
+function clearAllData() {
+  if (!confirm('هل أنت متأكد من حذف جميع البيانات؟ لا يمكن التراجع!')) return;
+  if (!confirm('تأكيد نهائي: سيتم حذف كل الموردين والأوردرات!')) return;
+  state.suppliers = [];
+  state.orders = [];
+  saveState();
+  renderAll();
+  showToast('تم حذف جميع البيانات', 'success');
+}
+
+function loadSampleData() {
+  if (state.suppliers.length > 0 && !confirm('سيتم إضافة بيانات تجريبية. هل تريد المتابعة؟')) return;
+  
+  const samples = [
+    { name: 'مصنع الجودة', contact: '0501234567', email: 'info@quality.sa', address: 'الرياض', status: 'active' },
+    { name: 'أهل السراء', contact: '0502345678', email: 'info@saraa.sa', address: 'جدة', status: 'active' },
+    { name: 'فضائيات', contact: '0503456789', email: 'info@fadaiaat.sa', address: 'الدمام', status: 'active' },
+    { name: 'الهدف الساطع', contact: '0504567890', email: 'info@hadaf.sa', address: 'مكة', status: 'active' },
+    { name: 'بيست كلين', contact: '0505678901', email: 'info@bestclean.sa', address: 'المدينة', status: 'active' }
+  ];
+  
+  samples.forEach(s => {
+    const id = genId('SUP');
+    const assigned = state.categories.sort(() => Math.random() - 0.5).slice(0, Math.floor(Math.random() * 5) + 3).map(c => c.id);
+    state.suppliers.push({
+      id, ...s, assignedCategories: assigned,
+      createdAt: new Date().toISOString()
+    });
+    
+    // Create sample order
+    const items = assigned.slice(0, 3).map(catId => {
+      const cat = state.categories.find(c => c.id === catId);
+      const target = Math.floor(Math.random() * 200) + 50;
+      const subAllocations = {};
+      const numSubs = Math.floor(Math.random() * 5) + 2;
+      for (let i = 0; i < numSubs && i < cat.subs.length; i++) {
+        const subId = catId + '-' + (i + 1).toString().padStart(2, '0');
+        subAllocations[subId] = { qty: Math.floor(Math.random() * 30), note: '' };
+      }
+      const allocated = Object.values(subAllocations).reduce((s, v) => s + v.qty, 0);
+      return {
+        mainCategoryId: catId,
+        mainCategoryName: cat.name,
+        target,
+        subAllocations,
+        totalAllocated: allocated,
+        shortfall: target - allocated,
+        progress: target > 0 ? Math.round((allocated / target) * 100) : 0
+      };
+    });
+    
+    const totals = {
+      targetSum: items.reduce((s, i) => s + i.target, 0),
+      allocatedSum: items.reduce((s, i) => s + i.totalAllocated, 0),
+      shortfallSum: 0,
+      overallProgress: 0
+    };
+    totals.shortfallSum = totals.targetSum - totals.allocatedSum;
+    totals.overallProgress = totals.targetSum > 0 ? Math.round((totals.allocatedSum / totals.targetSum) * 100) : 0;
+    
+    state.orders.push({
+      id: genId('ORD'),
+      supplierId: id,
+      supplierName: s.name,
+      orderDate: new Date().toISOString(),
+      status: ['draft', 'pending', 'confirmed'][Math.floor(Math.random() * 3)],
+      notes: '',
+      items,
+      totals
+    });
+  });
+  
+  saveState();
+  renderAll();
+  showToast('تم تحميل البيانات التجريبية', 'success');
+}
+
+// ============================================
+// SETTINGS
+// ============================================
+function updateSettingsInfo() {
+  const totalSubs = state.categories.reduce((s, c) => s + c.subs.length, 0);
+  document.getElementById('infoMainCats').textContent = state.categories.length;
+  document.getElementById('infoSubCats').textContent = totalSubs;
+  document.getElementById('infoSuppliers').textContent = state.suppliers.length;
+  document.getElementById('infoOrders').textContent = state.orders.length;
+}
+
+// ============================================
+// RENDER ALL
+// ============================================
+function renderAll() {
+  renderStats();
+  populateSupplierCategoryFilter();
+  renderSuppliers();
+  renderOrders();
+  renderTracking();
+  renderCategories();
+  renderDashboard();
+  updateSettingsInfo();
+}
+
+// ============================================
+// INIT
+// ============================================
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    await initDB();
+    await loadState();
+    renderAll();
+    showToast('تم تحميل التطبيق بنجاح', 'success');
+  } catch (err) {
+    console.error(err);
+    state.categories = DEFAULT_CATEGORIES;
+    renderAll();
+    showToast('تم التشغيل بالوضع الافتراضي', 'warning');
+  }
+  
+  // Close dropdowns on outside click
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#orderSupplierSearch') && !e.target.closest('#orderSupplierList')) {
+      document.getElementById('orderSupplierList').style.display = 'none';
+    }
+  });
+});
+</script>
+</body>
+</html>
